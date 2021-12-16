@@ -1,0 +1,348 @@
+---
+title: "Introduction to the R Package `WINS`"
+author: 'Ying Cui and Bo Huang^[Affiliation: Emory University, Pfizer Inc.]'
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  word_document: default
+header-includes: \usepackage{bm}
+r_build_args: '--compact-vignettes=both'
+vignette: |
+  %\VignetteIndexEntry{Introduction to the R Package `WINS`}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## A Brief Overview
+
+An inherent limitation of the commonly used composite endpoint approach to analyze prioritized multiple outcomes in clinical trials is the convention to investigate only the event that occurs first. However, the "first-occurred" event is often of less clinical importance. To overcome this limitation, the win statistics (win ratio (Pocock et al., 2012), net benefit (Buyse, 2010) and win odds (Dong et al., 2020)), a class of generalized pairwise comparison methods (Buyse, 2010), were introduced in the literature to analyze prioritized multiple endpoints to determine wins or losses based on the hierarchical order of clinical importance. Specifically, this method compares each subject in the experimental arm with every subject in the control arm by the most important endpoint first, and evaluates lower-priority endpoints if and only if higher-priority endpoints can not determine a win (i.e., a tie) for each pairwise comparison. The win statistics, in particular the win ratio and net benefit, have recently received much attention in methodological research as well as in designs and analyses of Phase III clinical trials. The pioneering work of Finkelstein and Schoenfeld (1999) is closely related to the win statistics.
+
+This document introduces the basic usage of the R package WINS. With the main function win.stat, one can calculate the win statistics and make statistical inference on prioritized multiple endpoints. Although recent methodology research has focused more on time-to-event endpoints, this function can deal with various type of outcomes (time-to-event, continuous, binary, ordinal, or a mixture of them). One can use the functions stat_t.plot, and partition_t.plot to plot the win statistics and win proportions over study time, respectively. A simulation function sim.data can be used to simulate data of multiple endpoints to evaluate the operating characteristics of the methods.
+
+## Introduction of the Win Statistics 
+
+In this section, we will provide a brief introduction of the win statistics. Denote $P_t$ as the win probability/proportion in the treatment group, and $P_c$ as the win probability/proportion in the control group. The question of interest can then be formulated as testing the null hypothesis $H_0: P_t = P_c$ versus its alternative. The win statistics are defined based on $P_t$ and $P_c$ as
+
+- Win ratio: $WR = {P_t}/{P_c}$.
+- Net benefit: $NB = P_t - P_c$.
+- Win odds: $WO = \frac{P_t+0.5(1-P_t-P_c)}{P_c+0.5(1-P_t-P_c)}$.
+
+To obtain the win statistics for a composite of $J$ prioritized outcomes, the counting approach is the most straightforward and intuitive especially when $J>2$. The basic idea is to compare each subject in the treatment group with every subject in the control group (a total of $N_tN_c$ pairs, where $N_t$ and $N_c$ are the number of subjects in the treatment group and the control group, respectively.). For each pair of subjects, the comparison starts from the most important outcome. The next lower-priority outcome is considered only if the higher-priority outcome results in a tie (i.e., a winner cannot be determined).
+
+First we introduce some necessary notations. Suppose all the J outcomes are time-to-event endpoints. For the treatment group, the observed data are noted as $\bm{Y} = \{Y_1^{(t)},\dots,Y_J^{(t)}\}$ and the event status $\bm{\delta} = \{\delta_1^{(t)},\dots,\delta_J^{(t)}\}$ with $\delta_j^{(t)}=1$ as the event and $\delta_j^{(t)}=0$ as censoring. Continuous/binary endpoints can be viewed as a special case of the time-to-event outcome with $\delta_j^{(t)}=1$ for all the subjects. The notations are the same for the control group except that the superscript is $^{(c)}$. 
+
+Consider a randomized clinical trial with $N_t$ and $N_c$ subjects in the treatment group and the control group, respectively. We use $i = 1,\dots,N_t$ for subjects in the treatment group and $l = 1,\dots, N_c$ for subjects in the Control group. Using the counting approach, we define the kernel functions $K$ and $L$ as follows: $K_{il}=1$ if subject $i$ in the treatment group wins over subject $l$ in the control group, otherwise $K_{il}=0$; and $L_{il}=1$ if subject $l$ wins over subject $i$, otherwise $L_{il}=0$. 
+Following the counting approach, we then define the win proportion $P_t$ and $P_c$ as
+$$
+P_t = \frac{\sum_{i=1}^{N_t}\sum_{l=1}^{N_c}K_{il}}{N_tN_c} \text{ and } P_c = \frac{\sum_{i=1}^{N_t}\sum_{l=1}^{N_c}L_{il}}{N_tN_c},
+$$
+where $K_{il}$ and $L_{il}$ are the kernel functions as defined above.
+
+Since the pioneering work by Pocock et.al (2012), the win statistics have received much attention in methodological research. Methods have been developed to correct for bias in the presence of censoring and to extend the use to stratified analysis. For example, Dong et.al (2018) considered a clinical trial with patients randomized into two groups with $M$ strata and proposed the stratified win ratio in a similar way as the Mantel-Haenszel stratified odds ratio. 
+To estimate the win proportions and win statistics in the presence of independent or dependent censoring, Dong et.al (2020, 2021) introduced the inverse-probability-of-censoring weighting (IPCW) adjusted method and CovIPCW-adjusted method using baseline covariates and/or time-dependent covariates that can predict the dependent censoring. 
+
+In Pocock et.al (2012), the confidence interval was constructed based on bootstrap resampling, and the hypothesis testing was based on the non-parametric method. To provide a more efficient inference procedure, Luo et al. (2015) developed a close-form variance estimator for the win ratio and the win difference only for cases with two time-to-event endpoints. Later on, Dong et al. (2016) and Bebu and Lachin (2016) developed a more generalized close-form variance estimator for the win statistics which has the flexibility to allow for any number of endpoints.
+
+In the next sections, we will provide some simulated examples to illustrate the use of our R package `WINS` to analyze prioritized multiple outcomes.
+
+```{r,eval=TRUE,echo=FALSE,message=FALSE,warning=FALSE}
+library(WINS)
+```
+
+
+## Estimate Win Statistics using `win.stat`
+
+In this section, we show how the main function win.stat works. We first provide three examples with three build-in simulated datasets in this R package. The number of endpoints in all these three example datasets are 3. Priority order of multiple endpoints can be specified in the option `priority`. For example, suppose we input endpoint 1, 2 and 3 as `Y_1`, `Y_2` and `Y_3`, respectively. `priority=c(2,1,3)` specifies that `Y_2` is the most important and `Y_3` is the least important.
+
+### An example with three binary endpoints
+
+We consider the values 1 vs 0 as the default setting for binary variables since oftentimes the value 1 represents response to the drug, and the default win strategy is that the value 1 wins over the value 0. 
+
+The example dataset `data_binary` contains 3 binary outcomes.
+
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+head(data_binary)
+
+res_binary <- win.stat(data = data_binary, ep_type = "binary", priority = c(1:3),
+                       weight = "unstratified", arm.name = c("A","B"), alpha=0.05, 
+                       digit = 3,pvalue = "two-sided")
+```
+
+### An example with three continuous endpoints
+
+The default win strategy for continuous outcomes is "the larger value wins".
+
+The example code is presented below.
+
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+head(data_continuous)
+
+res_continuous <- win.stat(data = data_continuous, ep_type = "continuous", 
+                           arm.name = c("A","B"),tau = 0, priority = c(1:3), 
+                           weight = "unstratified", alpha=0.05, digit = 3,
+                           pvalue = "two-sided")
+```
+
+Note that in this example, the $WR=WO$ because there are no ties for continuous outcomes.
+
+### An example with three time-to-event endpoints
+
+For time-to-event (TTE) outcomes, the adjustment for censoring can be specified in the option `censoring_adjust`. 
+
+For illustration, we first calculate the win statistics without using the IPCW approach to dealing with the censoring. The example code is presented below.
+
+
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+head(data_tte)
+
+### Without using the IPCW approach to dealing with the censoring
+res_tte <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"),
+                    tau = 0.1, priority = c(1:3), alpha = 0.05, digit = 3,
+                    weight = "unstratified", censoring_adjust = "No", 
+                    pvalue = "two-sided")
+```
+
+When censoring is assumed to be independent of the outcomes, we provide the option `censoring_adjust = "IPCW"` to calculate IPCW-adjusted win statistics (Dong et al., 2020). The example code is presented below.
+
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+### IPCW adjustment for independent censoring
+res_tte_ipcw <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"),
+                         tau = 0.1, priority = c(1:3), alpha = 0.05, digit = 3, 
+                         weight = "unstratified", censoring_adjust = "IPCW", 
+                         pvalue = "two-sided")
+```
+
+When censoring is suspected to be dependent on baseline or time dependent covariates which correlate with the outcomes, we provide the option `censoring_adjust = "CovIPCW"` to calculate CovIPCW-adjusted win statistics (Dong et al., 2021). The example code is presented below.
+
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+head(Z_t_trt)
+
+### CovIPCW adjustment for dependent censoring
+res_tte_covipcw <- win.stat(data = data_tte, ep_type = "tte", tau = 0.1, 
+                            arm.name = c("A","B"), weight = "unstratified",
+                            Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
+                            priority = c(1:3), alpha = 0.05, digit = 3,
+                            censoring_adjust = "CovIPCW", pvalue = "two-sided")
+```
+
+In the last two examples, there is $WR=WO$ because we adjusted the win proportions so that the tie proportion is not negative (i.e. equal to zero after adjustment) after IPCW adjustment. 
+
+These three examples presented above show the basic usage of the R function `win.stat` with various types of endpoints. In the next example, we provide a more complex data example.
+
+### An example with a mixture of endpoint types: two continuous and one TTE
+
+This example is for a simulated dataset with three endpoints as a mixture of two continuous endpoints and one TTE endpoint.
+
+The example code is presented below.
+
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+head(data_mix)
+
+res_mix <- win.stat(data = data_mix, ep_type = c("tte","continuous","continuous"),
+                    arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
+                    alpha = 0.05, digit = 3, censoring_adjust = "No",
+                    weight = "unstratified", pvalue = "two-sided")
+```
+
+When there is at least one TTE endpoints among all, the option censoring_adjust to calculate IPCW-adjusted and CovIPCW-adjusted win statistic is available.
+
+The example code is presented below.
+
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+### IPCW adjustment for independent censoring
+res_mix_ipcw <- win.stat(data = data_mix, 
+                         ep_type = c("tte","continuous","continuous"), 
+                         arm.name = c("A","B"), tau = 0.1, priority = c(1:3),
+                         alpha = 0.05, digit = 3, censoring_adjust = "IPCW",
+                         weight="unstratified", pvalue = "two-sided")
+```
+
+### An example with a mixture of endpoint types: two continuous and one TTE with three strata
+
+In this example, besides a mixture of endpoint types, there are three strata in the data. By default, the stratified win statistics proposed in Dong et al. (2018) are calculated.
+
+Let $N_t^{(m)}$ and $N_c^{(m)}$ denote the number of subjects in the treatment group and the control group of the $m$th stratum, respectively, and let $N^{(m)} = N_t^{(m)} + N_c^{(m)}$ denote the total number of subjects in the $m^{th}$ stratum for $m = 1,\dots,M$. Within each stratum, define the kernal functions $K_{il}^{(m)}(\bm{Y}_i^{(m)},\bm{\delta}_i^{(m)},\bm{Y}_l^{(m)},\bm{\delta}_l^{(m)})$ and $L_{il}^{(m)}(\bm{Y}_i^{(m)},\bm{\delta}_i^{(m)},\bm{Y}_l^{(m)},\bm{\delta}_l^{(m)})$ in a similar way as the case without stratification. The stratified win ratio is then defined as
+$$
+WR_{MH} = \frac{\sum_{m=1}^M w^{(m)}n_t^{(m)}}{\sum_{m=1}^M w^{(m)}n_c^{(m)}},
+$$
+where $n_t^{(m)} = \sum_{i=1}^{N_t^{(m)}}\sum_{l=1}^{N_c^{(m)}}K_{il}^{(m)}$, $n_c^{(m)} = \sum_{i=1}^{N_t^{(m)}}\sum_{l=1}^{N_c^{(m)}}L_{il}^{(m)}$, and $\{w^{(m)},m=1,\dots,M\}$ represent the weight assigned to the $M$ strata.
+
+Firstly, we provide the option to assign equal weights for all the strata, e.g., $w(m)=\frac{1}{M}$. The example code is presented below.
+
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+res_mix_equal <- win.stat(data = data_mix_stratum, 
+                          ep_type = c("tte","continuous","continuous"), 
+                          arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
+                          alpha = 0.05, digit = 3, censoring_adjust = "No", 
+                          weight = "equal", pvalue = "one-sided")
+```
+
+Then we consider the option to assign the weight for the $m$-th stratum as $w^{(m)} = 1/N^{(m)}$.
+The example code is presented below.
+
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+head(data_mix_stratum)
+
+res_mix_MH <- win.stat(data = data_mix_stratum, 
+                       ep_type = c("tte","continuous","continuous"), 
+                       arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
+                       alpha = 0.05, digit = 3, censoring_adjust = "No", 
+                       weight = "MH-type", pvalue = "one-sided")
+```
+
+In the above example, the stratified win ratio is proposed in a similar way as the Mantel-Haenszel stratified odds ratio. Specifically, given $M$ stratum, the stratum-specific wins are weighted to estimate the stratified win ratio. 
+
+We then provide another option to define the stratified win ratio, i.e., the weight is applied directly to the stratum-specific win statistics with the number of subjects. As an example, the stratified win ratio is defined as
+$$
+WR_{wt,1} = \sum_{m=1}^M w_1^{(m)}WR^{(m)} = \sum_{m=1}^M \frac{w_1^{(m)}n_t^{(m)}}{n_c^{(m)}}
+$$
+with $w_1^{(m)} =\frac{N^{(m)}}{\sum_{m=1}^M N^{(m)}}$.
+
+The example code is presented below.
+
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+res_mix_wt1 <- win.stat(data = data_mix_stratum, 
+                        ep_type = c("tte","continuous","continuous"), 
+                        arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
+                        alpha = 0.05, digit = 3, censoring_adjust = "No", 
+                        weight = "wt.stratum1", pvalue = "one-sided")
+```
+
+When there exist at least one TTE endpoints, we further provide a third option to set weight directly to the win statistics in each stratum relative to the number of events, i.e., the stratified win ratio is defined as
+$$
+WR_{wt,2} = \sum_{m=1}^M w_2^{(m)}WR^{(m)} = \sum_{m=1}^M \frac{w_2^{(m)}n_t^{(m)}}{n_c^{(m)}}
+$$
+with $w_2^{(m)} =\frac{N_{event}^{(m)}}{\sum_{m=1}^M N_{event}^{(m)}}$.
+
+The example code is presented below.
+
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+res_mix_wt2 <- win.stat(data = data_mix_stratum, 
+                        ep_type = c("tte","continuous","continuous"), 
+                        arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
+                        alpha = 0.05, digit = 3, censoring_adjust = "No", 
+                        weight = "wt.stratum2", pvalue = "one-sided")
+```
+
+## Data simulation with the function `sim.data`
+
+In this section, we provide two examples to show how to use `sim.data` to simulate data. We provide two options. One is based on exponential distributions, the other simulates correlated endpoints using the existing R package `copula`. The accrual time is assumed to follow a certain distribution, for example, uniform distribution.
+
+The first option focuses on generating two TTE endpoints $Y_1$ and $Y_2$ with the more important TTE endpoint $Y_2$ expected to occur later. Also, the two endpoints are in a semi-competing risk setting with $Y_2$ as the terminal endpoint (i.e., $Y_1$ cannot occur later than $Y_2$). A real example for those two endpoints is the composite of progression ($Y_1$) and death ($Y_2$) in oncology clinical trials. If death is the event that happened first, then $Y_1$ is censored by death; while the reverse is not true.
+
+The example code is presented below.
+
+```{r,eval=TRUE,echo=TRUE,warning=FALSE}
+#### Generate two TTE endpoints with the more important TTE endpoint expected to occur
+#### later with exponential distributions.
+sim.data_tte <- sim.data(n_trt = 150, n_con = 100, n_ep = 2, 
+                         arm.name = c("A","B"), ep_type = c("tte","tte"), 
+                         cdist.rate = 0.5, sim_method = "tte_exponential", 
+                         rate_trt = c(0.3,0.2), rate_con = c(0.5,0.4), 
+                         max_accrual_time = 5)
+
+win_stat_sim_tte <- win.stat(data = sim.data_tte, ep_type = c("tte","tte"), 
+                             arm.name = c("A","B"), digit = 3, priority = c(2,1))
+```
+
+
+The second option is to generate the data with the R package `copula`. This option works for any number of endpoints and is able to simulate the correlation between the endpoints, however there will not be competing risk among the simulated endpoints.
+
+The below is an example with three endpoints, noted as $Y_1$, $Y_2$, and $Y_3$, with endpoint type as TTE, TTE and continuous. For both the treatment group and the control group, the correlation coefficients $cor(Y_1,Y_2)$, $cor(Y_1,Y_3)$ and $cor(Y_2,Y_3)$ are 0.9, 0.8 and 0.95, respectively. For each treatment group, the marginal distribution for $Y_1$, $Y_2$, and $Y_3$ are Gamma, Beta and Student t specified as a vector in "margins_trt"/"margins_con". The parameters are specified as a list corresponding to the marginal distributions in "paramMargins_trt" or "paramMargins_con".
+
+The example code is presented below.
+
+```{r,eval=TRUE,echo=TRUE,warning=FALSE}
+sim.data <- sim.data(n_trt = 150, n_con = 100, n_ep = 3, arm.name = c("A","B"),
+                     ep_type = c("tte","tte","continuous"), 
+                     cdist.rate = 0.5, sim_method = "copula",
+                     copula_trt=copula::normalCopula(param=c(0.9,0.8,0.95), dim = 3,
+                                             dispstr = "un"),
+                     margins_trt=c("gamma", "beta", "t"),
+                     paramMargins_trt=list(list(shape=2, scale=1),
+                                           list(shape1=2, shape2=2), list(df=5)),
+                     copula_con=copula::normalCopula(param=c(0.9,0.8,0.95), dim = 3,
+                                             dispstr = "un"),
+                     margins_con=c("gamma", "beta", "t"),
+                     paramMargins_con=list(list(shape=1, scale=1),
+                                           list(shape1=1, shape2=2), list(df=2)),
+                     max_accrual_time = 5)
+
+win_stat <- win.stat(data = sim.data, ep_type = c("tte","tte","continuous"),
+                     arm.name = c("A","B"), digit = 3, priority = c(1,2,3))
+```
+
+
+## Plot the Win Statistics/Win Proportions over Time
+
+Win statistics and win proportions are dependent on follow-up time (e.g., Oakes, 2016), and they can be graphically presented (Finkelstein and Schoenfeld, 2019). In this section, we show the usage of the two plot functions `stat_t.plot` and `partition_t.plot` for TTE endpoints only. The two functions are able to plot the win statistics of stated with its point-wise 95\% confidence interval, as well as the win proportion in each treatment group over study time. If the study entry time for each individual is not provided in the dataset, then by default all the individuals are assumed to enter the study at the same time.
+
+The example code is presented below.
+
+```{r,eval=TRUE,echo=TRUE,dpi=100,fig.height=4, fig.width=6,fig.align="center",message=FALSE,warning=FALSE}
+#### An simulated example with three TTE endpoints.
+data <- sim.data(n_trt = 200, n_con = 200, n_ep = 3, arm.name = c("A","B"),
+                 ep_type = "tte", cdist.rate = 1, sim_method = "copula",
+                 copula_trt=copula::normalCopula(param=c(0.9,0.8,0.95), dim = 3, 
+                                         dispstr = "un"),
+                 margins_trt=c("gamma", "beta", "gamma"),
+                 paramMargins_trt=list(list(shape=2, scale=2),
+                                       list(shape1=2, shape2=2),
+                                       list(shape=2, scale=3)),
+                 copula_con=copula::normalCopula(param=c(0.9,0.8,0.95), dim = 3, 
+                                         dispstr = "un"),
+                 margins_con=c("gamma", "beta", "gamma"),
+                 paramMargins_con=list(list(shape=2, scale=1),
+                                       list(shape1=2, shape2=1),
+                                       list(shape=2, scale=2)),
+                 max_accrual_time = 5)
+
+stat_t.plot(data, arm.name = c("A","B"),priority = c(3,2,1), 
+              Ctime = seq(2,8,0.2),plotTimeUnit = "years",
+              statistic = "WR", tau = 0, plot_CI = TRUE)
+```
+
+```{r,eval=TRUE,echo=TRUE,dpi=100,fig.height=4, fig.width=6,fig.align="center",message=FALSE,warning=FALSE}
+partition_t.plot(data, Ctime = c(seq(0,9,0.5),seq(9.1,11,0.1)), arm.name = c("A","B"),
+priority = c(3,2,1), tau = 0, plotTimeUnit = "years", trt_group = "trt")
+```
+
+## Acknowledgement
+
+- Dr. Gaohong Dong for reviewing the vignette and providing constructive comments.
+
+## Reference
+
+- Finkelstein, D.M. and Schoenfeld, D.A., 1999. Combining mortality and longitudinal measures in clinical trials. Statistics in medicine, 18(11), pp.1341-1354.
+
+- Buyse, M., 2010. Generalized pairwise comparisons of prioritized outcomes in the two‐sample problem. Statistics in medicine, 29(30), pp.3245-3257.
+
+- Pocock, S.J., Ariti, C.A., Collier, T.J. and Wang, D., 2012. The win ratio: a new approach to the analysis of composite endpoints in clinical trials based on clinical priorities. European heart journal, 33(2), pp.176-182.
+
+- Luo, X., Tian, H., Mohanty, S. and Tsai, W.Y., 2015. An alternative approach to confidence interval estimation for the win ratio statistic. Biometrics, 71(1), pp.139-145.
+
+- Bebu, I. and Lachin, J.M., 2016. Large sample inference for a win ratio analysis of a composite outcome based on prioritized components. Biostatistics, 17(1), pp.178-187.
+
+- Dong, G., Li, D., Ballerstedt, S. and Vandemeulebroecke, M., 2016. A generalized analytic solution to the win ratio to analyze a composite endpoint considering the clinical importance order among components. Pharmaceutical statistics, 15(5), pp.430-437.
+
+- Dong, G., Qiu, J., Wang, D. and Vandemeulebroecke, M., 2018. The stratified win ratio. Journal of biopharmaceutical statistics, 28(4), pp.778-796.
+
+- Finkelstein, D.M. and Schoenfeld, D.A., 2019. Graphing the Win Ratio and its components over time. Statistics in medicine, 38(1), pp.53-61.
+
+- Dong, G., Huang, B., Chang, Y.W., Seifu, Y., Song, J. and Hoaglin, D.C., 2020. The win ratio: Impact of censoring and follow‐up time and use with nonproportional hazards. Pharmaceutical statistics, 19(3), pp.168-177.
+
+- Dong, G., Mao, L., Huang, B., Gamalo-Siebers, M., Wang, J., Yu, G. and Hoaglin, D.C., 2020. The inverse-probability-of-censoring weighting (IPCW) adjusted win ratio statistic: an unbiased estimator in the presence of independent censoring. Journal of biopharmaceutical statistics, 30(5), pp.882-899.
+
+- Dong, G., Hoaglin, DC., Qiu, J., Matsouaka, RA., Chang, Y., Wang, J., Vandemeulebroecke, M., 2020. The win ratio: on interpretation and handling of ties. Statistics in Biopharmaceutical Research, 12(1), pp.99-106
+
+- Dong, G., Huang, B., Wang, D., Verbeeck, J., Wang, J. and Hoaglin, D.C., 2021. Adjusting win statistics for dependent censoring. Pharmaceutical Statistics, 20(3), pp.440-450.
+
+
+
