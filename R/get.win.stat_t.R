@@ -7,6 +7,7 @@ get.win.stat_t<-function(trt, con, ep_type, Z_t_trt = NULL, Z_t_con = NULL, prio
                          return_pvalue = FALSE, ...){
   #### obtain the number of endpoints and total number of individuals
   n_ep = length(priority)
+  n_tte = sum(ep_type=="tte")
 
   #### Modify trt and con based on the follow time relative to the start of study
   #### and obtain the unmatched pairs
@@ -104,11 +105,11 @@ get.win.stat_t<-function(trt, con, ep_type, Z_t_trt = NULL, Z_t_con = NULL, prio
     N = N_trt + N_con
 
     ind.trt = which(colnames(trt)=="Delta_1_trt")
-    event_trt = apply(trt[,ind.trt:(ind.trt+n_ep-1)], 1, function(x) max(x)>0)
+    event_trt = apply(as.matrix(trt[,c(ind.trt:(ind.trt+n_ep-1))],ncol = n_tte), 1, function(x) max(x)>0)
     N_event_trt = tapply(event_trt,trt$stratum,sum)
 
     ind.con = which(colnames(con)=="Delta_1_con")
-    event_con = apply(con[,ind.con:(ind.con+n_ep-1)], 1, function(x) max(x)>0)
+    event_con = apply(as.matrix(con[,c(ind.con:(ind.con+n_ep-1))],ncol = n_tte), 1, function(x) max(x)>0)
     N_event_con = tapply(event_con,con$stratum,sum)
 
     N_event = N_event_trt + N_event_con
@@ -117,31 +118,43 @@ get.win.stat_t<-function(trt, con, ep_type, Z_t_trt = NULL, Z_t_con = NULL, prio
     w_stratum = switch(weight,
                        "unstratified" = 1,
                        "equal" = rep(1/length(N),length(N)),
-                       "MH-type" = (1/N)/sum(1/N),
+                       "MH-type" = ((N_trt*N_con)/N)/sum((N_trt*N_con)/N),
                        "wt.stratum1" = N/sum(N),
                        "wt.stratum2" = N_event/sum(N_event)
     )
+    if(weight%in%c("unstratified","equal","MH-type")){
+      stratified_N = sum((N_trt*N_con)*w_stratum)
+    }
     stratified_WR = switch(weight,
-                           "unstratified" = sum(P_trt*w_stratum)/sum(P_con*w_stratum),
-                           "equal" = sum(P_trt*w_stratum)/sum(P_con*w_stratum),
-                           "MH-type" = sum(P_trt*w_stratum)/sum(P_con*w_stratum),
+                           "unstratified" = sum(win_trt*w_stratum/stratified_N)/sum(win_con*w_stratum/stratified_N),
+                           "equal" = sum(win_trt*w_stratum/stratified_N)/sum(win_con*w_stratum/stratified_N),
+                           "MH-type" = sum(win_trt*w_stratum/stratified_N)/sum(win_con*w_stratum/stratified_N),
                            "wt.stratum1" = sum(w_stratum*WR_stratum),
                            "wt.stratum2" = sum(w_stratum*WR_stratum)
     )
     stratified_NB = switch(weight,
-                           "unstratified" = sum(P_trt*w_stratum)-sum(P_con*w_stratum),
-                           "equal" = sum(P_trt*w_stratum)-sum(P_con*w_stratum),
-                           "MH-type" = sum(P_trt*w_stratum)-sum(P_con*w_stratum),
+                           "unstratified" = sum(win_trt*w_stratum/stratified_N)-sum(win_con*w_stratum/stratified_N),
+                           "equal" = sum(win_trt*w_stratum/stratified_N)-sum(win_con*w_stratum/stratified_N),
+                           "MH-type" = sum(win_trt*w_stratum/stratified_N)-sum(win_con*w_stratum/stratified_N),
                            "wt.stratum1" = sum(w_stratum*NB_stratum),
                            "wt.stratum2" = sum(w_stratum*NB_stratum)
     )
     stratified_WO = switch(weight,
-                           "unstratified" = sum((P_trt + 0.5*(1-P_trt-P_con))*w_stratum)/
-                             sum((P_con + 0.5*(1-P_trt-P_con))*w_stratum),
-                           "equal" = sum((P_trt + 0.5*(1-P_trt-P_con))*w_stratum)/
-                             sum((P_con + 0.5*(1-P_trt-P_con))*w_stratum),
-                           "MH-type" = sum((P_trt + 0.5*(1-P_trt-P_con))*w_stratum)/
-                             sum((P_con + 0.5*(1-P_trt-P_con))*w_stratum),
+                           "unstratified" = sum((sum(win_trt*w_stratum/stratified_N) +
+                                                   0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                          sum(win_con*w_stratum/stratified_N))))/
+                             sum((sum(win_con*w_stratum/stratified_N) + 0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                                               sum(win_con*w_stratum/stratified_N)))),
+                           "equal" = sum((sum(win_trt*w_stratum/stratified_N) +
+                                            0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                   sum(win_con*w_stratum/stratified_N))))/
+                             sum((sum(win_con*w_stratum/stratified_N) + 0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                                               sum(win_con*w_stratum/stratified_N)))),
+                           "MH-type" = sum((sum(win_trt*w_stratum/stratified_N) +
+                                              0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                     sum(win_con*w_stratum/stratified_N))))/
+                             sum((sum(win_con*w_stratum/stratified_N) + 0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                                               sum(win_con*w_stratum/stratified_N)))),
                            "wt.stratum1" = sum(w_stratum*WO_stratum),
                            "wt.stratum2" = sum(w_stratum*WO_stratum)
     )

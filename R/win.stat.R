@@ -18,6 +18,8 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
   if(length(ep_type)==1){
     cat("The outcome type for all the endpoints: ",ep_type,"\n")
     ep_type = rep(ep_type,n_ep)
+  }else if(length(ep_type)!=n_ep){
+    stop("The length of priority does not match the number of endpoints.")
   }
 
   #### If tau is input as scalar, treat all the tau as the same.
@@ -29,10 +31,21 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
   #### Reorganize the data
   #############################################################################################
   colname.ds = colnames(data)
+
   if(max(c("arm","trt","treat","treatment")%in%colname.ds)==TRUE){
     arm = data[,which(colname.ds%in%c("arm","trt","treat","treatment"))]
   }else{
     stop("The treatment variable is not found. Please rename the treatment variable to arm, trt, treat or treatment.")
+  }
+
+  #### obtain the number of treatment and control
+  n_trt = sum(arm==arm.name[1]); n_con = sum(arm==arm.name[2])
+
+  if("id"%in%colname.ds==TRUE){
+    id_trt = data[arm==arm.name[1],which(colname.ds%in%c("id"))]
+    id_con = data[arm==arm.name[2],which(colname.ds%in%c("id"))]
+  }else{
+    id_trt = 1:n_trt; id_con = 1:n_con
   }
 
   if(("stratum"%in%colname.ds)==TRUE && weight != "unstratified"){
@@ -50,12 +63,9 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
 
   Y = as.matrix(data[,which(stringr::str_detect(colname.ds,"Y"))])
 
-  data_mix = data.frame(arm = arm,stratum = stratum,Delta = Delta,Y = Y)
-  colnames(data_mix) = c("arm","stratum",paste0("Delta_",1:n_ep),paste0("Y_",1:n_ep))
+  df = data.frame(arm = arm,stratum = stratum,Delta = Delta,Y = Y)
+  colnames(df) = c("arm","stratum",paste0("Delta_",1:n_ep),paste0("Y_",1:n_ep))
   rm(arm,stratum,Delta,Y)
-
-  #### obtain the number of treatment and control
-  n_trt = sum(data_mix$arm==arm.name[1]); n_con = sum(data_mix$arm==arm.name[2])
 
   #############################################################################################
   #### The options for data set with two endpoints and without stratum: obtain the win ratio
@@ -63,18 +73,18 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
   #############################################################################################
   if(var_method == "Luo et al."){
     #### Obtain parameters for Luo et. al's method
-    y1 = data_mix[,which(colnames(data_mix) == paste0("Y_",priority[2]))]
-    y2 = data_mix[,which(colnames(data_mix) == paste0("Y_",priority[1]))]
+    y1 = df[,which(colnames(df) == paste0("Y_",priority[2]))]
+    y2 = df[,which(colnames(df) == paste0("Y_",priority[1]))]
 
-    ind_delta_priority1 = which(colnames(data_mix) == paste0("Delta_",priority[1]))
-    ind_delta_priority2 = which(colnames(data_mix) == paste0("Delta_",priority[2]))
+    ind_delta_priority1 = which(colnames(df) == paste0("Delta_",priority[1]))
+    ind_delta_priority2 = which(colnames(df) == paste0("Delta_",priority[2]))
 
-    g = 1*(data_mix$arm==arm.name[1])
+    g = 1*(df$arm==arm.name[1])
 
-    d = 1*(data_mix[,ind_delta_priority1] == 1 & data_mix[,ind_delta_priority2] == 1) +
-        2*(data_mix[,ind_delta_priority1] == 1 & data_mix[,ind_delta_priority2] == 0) +
-        3*(data_mix[,ind_delta_priority1] == 0 & data_mix[,ind_delta_priority2] == 0) +
-        4*(data_mix[,ind_delta_priority1] == 0 & data_mix[,ind_delta_priority2] == 1)
+    d = 1*(df[,ind_delta_priority1] == 1 & df[,ind_delta_priority2] == 1) +
+        2*(df[,ind_delta_priority1] == 1 & df[,ind_delta_priority2] == 0) +
+        3*(df[,ind_delta_priority1] == 0 & df[,ind_delta_priority2] == 0) +
+        4*(df[,ind_delta_priority1] == 0 & df[,ind_delta_priority2] == 1)
 
     n = length(y1)
 
@@ -122,10 +132,10 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
           "Lower limit of", 100*(1-alpha), "% CI of the net benefit: ", formatC(NB_L,digits = digit,format = "f"), "\n",
           "Upper limit of", 100*(1-alpha), "% CI of the net benefit: ", formatC(NB_U,digits = digit,format = "f"), "\n",
           "\n")
+    }else{
+      res = list(Win_statisitc = Win_statisitc, p_value = c(pvalue_WR,pvalue_NB))
+      return(res)
     }
-
-    res = list(Win_statisitc = Win_statisitc, p_value = c(pvalue_WR,pvalue_NB))
-    return(res)
   }
 
   #############################################################################################
@@ -133,10 +143,11 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
   #### win ratio, net benefit and win odds from Dong et.al's method.
   #############################################################################################
   #### pair the individuals in the treatment and control group
-  trt = data.frame(1:n_trt,data_mix[data_mix$arm==arm.name[1],-1])
-  colnames(trt) = c("pid_trt","stratum",paste0(colnames(data_mix)[-c(1,2)],"_trt"))
-  con = data.frame(1:n_con,data_mix[data_mix$arm==arm.name[2],-1])
-  colnames(con) = c("pid_con","stratum",paste0(colnames(data_mix)[-c(1,2)],"_con"))
+
+  trt = data.frame(id_trt,df[df$arm==arm.name[1],-1])
+  colnames(trt) = c("pid_trt","stratum",paste0(colnames(df)[-c(1,2)],"_trt"))
+  con = data.frame(id_con,df[df$arm==arm.name[2],-1])
+  colnames(con) = c("pid_con","stratum",paste0(colnames(df)[-c(1,2)],"_con"))
   trt_con = merge(trt,con,by="stratum")
 
   #############################################################################################
@@ -276,31 +287,43 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
   w_stratum = switch(weight,
                      "unstratified" = 1,
                      "equal" = rep(1/length(N),length(N)),
-                     "MH-type" = (1/N)/sum(1/N),
+                     "MH-type" = ((N_trt*N_con)/N)/sum((N_trt*N_con)/N),
                      "wt.stratum1" = N/sum(N),
                      "wt.stratum2" = N_event/sum(N_event)
   )
+  if(weight%in%c("unstratified","equal","MH-type")){
+    stratified_N = sum((N_trt*N_con)*w_stratum)
+  }
   stratified_WR = switch(weight,
-                         "unstratified" = sum(P_trt*w_stratum)/sum(P_con*w_stratum),
-                         "equal" = sum(P_trt*w_stratum)/sum(P_con*w_stratum),
-                         "MH-type" = sum(P_trt*w_stratum)/sum(P_con*w_stratum),
+                         "unstratified" = sum(win_trt*w_stratum/stratified_N)/sum(win_con*w_stratum/stratified_N),
+                         "equal" = sum(win_trt*w_stratum/stratified_N)/sum(win_con*w_stratum/stratified_N),
+                         "MH-type" = sum(win_trt*w_stratum/stratified_N)/sum(win_con*w_stratum/stratified_N),
                          "wt.stratum1" = sum(w_stratum*WR_stratum),
                          "wt.stratum2" = sum(w_stratum*WR_stratum)
   )
   stratified_NB = switch(weight,
-                         "unstratified" = sum(P_trt*w_stratum)-sum(P_con*w_stratum),
-                         "equal" = sum(P_trt*w_stratum)-sum(P_con*w_stratum),
-                         "MH-type" = sum(P_trt*w_stratum)-sum(P_con*w_stratum),
+                         "unstratified" = sum(win_trt*w_stratum/stratified_N)-sum(win_con*w_stratum/stratified_N),
+                         "equal" = sum(win_trt*w_stratum/stratified_N)-sum(win_con*w_stratum/stratified_N),
+                         "MH-type" = sum(win_trt*w_stratum/stratified_N)-sum(win_con*w_stratum/stratified_N),
                          "wt.stratum1" = sum(w_stratum*NB_stratum),
                          "wt.stratum2" = sum(w_stratum*NB_stratum)
   )
   stratified_WO = switch(weight,
-                         "unstratified" = sum((P_trt + 0.5*(1-P_trt-P_con))*w_stratum)/
-                           sum((P_con + 0.5*(1-P_trt-P_con))*w_stratum),
-                         "equal" = sum((P_trt + 0.5*(1-P_trt-P_con))*w_stratum)/
-                           sum((P_con + 0.5*(1-P_trt-P_con))*w_stratum),
-                         "MH-type" = sum((P_trt + 0.5*(1-P_trt-P_con))*w_stratum)/
-                           sum((P_con + 0.5*(1-P_trt-P_con))*w_stratum),
+                         "unstratified" = sum((sum(win_trt*w_stratum/stratified_N) +
+                                                 0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                        sum(win_con*w_stratum/stratified_N))))/
+                           sum((sum(win_con*w_stratum/stratified_N) + 0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                                             sum(win_con*w_stratum/stratified_N)))),
+                         "equal" = sum((sum(win_trt*w_stratum/stratified_N) +
+                                          0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                 sum(win_con*w_stratum/stratified_N))))/
+                           sum((sum(win_con*w_stratum/stratified_N) + 0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                                             sum(win_con*w_stratum/stratified_N)))),
+                         "MH-type" = sum((sum(win_trt*w_stratum/stratified_N) +
+                                            0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                   sum(win_con*w_stratum/stratified_N))))/
+                           sum((sum(win_con*w_stratum/stratified_N) + 0.5*(1-sum(win_trt*w_stratum/stratified_N)-
+                                                                             sum(win_con*w_stratum/stratified_N)))),
                          "wt.stratum1" = sum(w_stratum*WO_stratum),
                          "wt.stratum2" = sum(w_stratum*WO_stratum)
   )
@@ -354,15 +377,15 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
   stratified_NB_L = stratified_NB - qnorm(1-alpha/2)*sqrt(stratified_sig2_nb)
   stratified_NB_U = stratified_NB + qnorm(1-alpha/2)*sqrt(stratified_sig2_nb)
 
-  Win_statistic = c(Win_Ratio = c(stratified_WR = stratified_WR,
-                                  stratified_WR_L = stratified_WR_L,
-                                  stratified_WR_U = stratified_WR_U),
-                    Net_Benefit = c(stratified_NB = stratified_NB,
-                                    stratified_NB_L = stratified_NB_L,
-                                    stratified_NB_U = stratified_NB_U),
-                    Win_Odds = c(stratified_WO = stratified_WO,
-                                 stratified_WO_L = stratified_WO_L,
-                                 stratified_WO_U = stratified_WO_U))
+  Win_statistic = list(Win_Ratio = c(WR = stratified_WR,
+                                  WR_L = stratified_WR_L,
+                                  WR_U = stratified_WR_U),
+                    Net_Benefit = c(NB = stratified_NB,
+                                    NB_L = stratified_NB_L,
+                                    NB_U = stratified_NB_U),
+                    Win_Odds = c(WO = stratified_WO,
+                                 WO_L = stratified_WO_L,
+                                 WO_U = stratified_WO_U))
 
   if(summary.print){
     #############################################################################################
@@ -389,8 +412,8 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
         "Lower limit of", 100*(1-alpha), "% CI of the win odds: ", formatC(stratified_WO_L,digits = digit, format = "f"), "\n",
         "Upper limit of", 100*(1-alpha), "% CI of the win odds: ", formatC(stratified_WO_U,digits = digit, format = "f"), "\n",
         "\n")
+  }else{
+    res = list(Win_statistic = Win_statistic, p_value = c(pvalue_WR,pvalue_NB,pvalue_WO))
+    return(res)
   }
-
-  res = list(Win_statistic = Win_statistic, p_value = c(pvalue_WR,pvalue_NB,pvalue_WO))
-  return(res)
 }

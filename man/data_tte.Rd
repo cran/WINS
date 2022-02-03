@@ -11,6 +11,7 @@ This is a simulated data example with three time-to-event endpoints.
 \format{
   A data frame with 400 observations on the following 7 variables.
   \describe{
+    \item{\code{id}}{A vector for the patient id.}
     \item{\code{arm}}{A vector for the treatment groups.}
     \item{\code{Delta_1}}{A vector for the event status of the first endpoint (1=event, 0=censored).}
     \item{\code{Delta_2}}{A vector for the event status of the second endpoint (1=event, 0=censored).}

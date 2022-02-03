@@ -53,8 +53,8 @@ ipcw.adjusted.KL<-function(win_status, trt, con, trt_con, priority, n_ep, ep_typ
     }
   }
 
-  K = apply(status_KL[,seq(1,(2*n_ep-1),2)],1,sum)
-  L = apply(status_KL[,seq(2,(2*n_ep),2)],1,sum)
+  K = apply(as.matrix(status_KL[,seq(1,(2*n_ep-1),2)],ncol = n_ep),1,sum)
+  L = apply(as.matrix(status_KL[,seq(2,(2*n_ep),2)],ncol = n_ep),1,sum)
 
   KL = cbind(trt_con$stratum, trt_con$pid_trt, trt_con$pid_con, K, L)
   colnames(KL) = c("stratum","pid_trt","pid_con","K","L")

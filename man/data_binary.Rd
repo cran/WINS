@@ -11,6 +11,7 @@ This is a simulated data example with three binary endpoints.
 \format{
   A data frame with 250 observations on the following 4 variables.
   \describe{
+    \item{\code{id}}{A vector for the patient id.}
     \item{\code{arm}}{A vector for the treatment groups.}
     \item{\code{Y_1}}{A vector for the outcome of the first endpoint.}
     \item{\code{Y_2}}{A vector for the outcome of the second endpoint.}

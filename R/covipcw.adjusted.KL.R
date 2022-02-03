@@ -70,8 +70,8 @@ covipcw.adjusted.KL<-function(win_status, trt, con, trt_con, Z_t_trt, Z_t_con, p
     }
   }
 
-  K = apply(status_KL[,seq(1,(2*n_ep-1),2)],1,sum)
-  L = apply(status_KL[,seq(2,(2*n_ep),2)],1,sum)
+  K = apply(as.matrix(status_KL[,seq(1,(2*n_ep-1),2)],ncol = n_ep),1,sum)
+  L = apply(as.matrix(status_KL[,seq(2,(2*n_ep),2)],ncol = n_ep),1,sum)
 
   # Return a data frame with the CovIPCW_adjusted kernel functions K and L
   KL = cbind(trt_con$stratum, trt_con$pid_trt, trt_con$pid_con, K, L)
