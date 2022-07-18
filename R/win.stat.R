@@ -287,7 +287,7 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
   w_stratum = switch(weight,
                      "unstratified" = 1,
                      "equal" = rep(1/length(N),length(N)),
-                     "MH-type" = ((N_trt*N_con)/N)/sum((N_trt*N_con)/N),
+                     "MH-type" = (1/N)/sum(1/N),
                      "wt.stratum1" = N/sum(N),
                      "wt.stratum2" = N_event/sum(N_event)
   )
@@ -413,7 +413,7 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
         "Upper limit of", 100*(1-alpha), "% CI of the win odds: ", formatC(stratified_WO_U,digits = digit, format = "f"), "\n",
         "\n")
   }else{
-    res = list(Win_statistic = Win_statistic, p_value = c(pvalue_WR,pvalue_NB,pvalue_WO))
+    res = list(Win_prop = cbind(P_trt,P_con),Win_statistic = Win_statistic, p_value = c(pvalue_WR,pvalue_NB,pvalue_WO))
     return(res)
   }
 }

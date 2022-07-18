@@ -1,7 +1,7 @@
-e712b646ab844ad2ebe45c8dbce1ca40 *DESCRIPTION
+9291610050bd409ce59715abad443026 *DESCRIPTION
 9275d0559a5f66519e771bbd5bf81124 *NAMESPACE
 de95eef12ec1d97bfae13c7249f30ddf *R/covipcw.adjusted.KL.R
-78c762562ccabfbb966c0b3de85bc670 *R/get.win.stat_t.R
+0bb4d744948726ff8e2601808c4774fc *R/get.win.stat_t.R
 4e3d846f4a083084afdbfcfbd8865375 *R/globals.R
 1f070afa1889038a7e3ce46dab32c125 *R/ipcw.adjusted.KL.R
 b57ee1b985ae3afa31cc1abcde461b59 *R/original.KL.R
@@ -9,7 +9,7 @@ e68d8e0212eac8a7ed470eee3306e6a8 *R/partition_t.plot.R
 8318ca401d9b006af9069e3b47ecdc55 *R/sim.data.R
 6fd05d00113dd1c2d606b01b1f1b8c2f *R/stat_t.plot.R
 b8383cac5b48db8408bb8c3e65fa20fd *R/win.stat.Luo.R
-441768f18f8c56adbb9169031de2a538 *R/win.stat.R
+602c065cd52ca33c9f13b30530be2df9 *R/win.stat.R
 5bbe5b2580c97cc1d8591cf1c74d3d7b *R/win.strategy.default.R
 078fd5ede10575a7963d1ca062f75e4f *build/vignette.rds
 a2c0f91b278bbb6e5409c88ac8968832 *data/data_binary.RData
@@ -19,7 +19,7 @@ bc6aa556dde442c24522f61a974372c3 *data/data_mix_stratum.RData
 bf8270cefe1eec88fd4871eb43472705 *data/data_tte.RData
 48ad16b2b5a2b500cd61c91c5cb57e9d *inst/doc/vignette.R
 b9102fdcc836a6b300483ca019a8afae *inst/doc/vignette.Rmd
-2038391f48d493116fd3d86d3c4d63d2 *inst/doc/vignette.pdf
+7e1cc04befc6100ab9209c43242188d9 *inst/doc/vignette.pdf
 59d9475dae364d200db3648a23a7886a *man/Z_t_con.Rd
 979f3c1e739177c6ec789b35bb829f12 *man/Z_t_trt.Rd
 4ba6535885660f9a02850a2d5394b9c9 *man/data_binary.Rd

@@ -1,7 +1,7 @@
 Package: WINS
 Type: Package
 Title: The R WINS Package
-Version: 1.1
+Version: 1.2
 Authors@R: c(person(given = "Ying",
              family = "Cui",
              role = c("aut", "cre"),
@@ -19,8 +19,8 @@ License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 NeedsCompilation: no
-Packaged: 2022-02-03 04:16:19 UTC; ycui
+Packaged: 2022-07-18 01:26:53 UTC; ycui
 Author: Ying Cui [aut, cre],
   Bo Huang [aut]
 Repository: CRAN
-Date/Publication: 2022-02-03 18:50:02 UTC
+Date/Publication: 2022-07-18 08:00:02 UTC
