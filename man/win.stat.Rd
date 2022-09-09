@@ -18,7 +18,7 @@ summary.print = TRUE, ...)
   \item{data}{The analysis dataset which contains the following variables:
     \itemize{
       \item{arm: }{A vector for the treatment groups. Alternative names for "arm" include "trt", "treat" and "treatment".}
-      \item{id}{A vector for the patient id.}
+      \item{id: }{A vector for the patient id.}
       \item{stratum: }{A vector for the stratum.}
       \item{Delta_j: }{A vector for the event status of the j-th endpoint if the endpoint is a time-to-event outcome (1=event, 0=censored).}
       \item{Y_j: }{A vector for the outcome of the j-th endpoint, for time-to-event outcome, Y_j is a vector for the observed time.}

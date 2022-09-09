@@ -45,8 +45,11 @@ ipcw.adjusted.KL<-function(win_status, trt, con, trt_con, priority, n_ep, ep_typ
       csurv2.indx_con = apply(cen_time_con >= t(array(rep(csurv2.fit$time, num2), c(L.tpt_con, num2))), 1, sum)
       csurv2.x_con = csurv2.fit$surv[csurv2.indx_con]*as.numeric((event_con==1))+(1-as.numeric((event_con==1)))
 
-      IPCW1 = csurv1.x_trt[trt_con$pid_trt]*csurv2.x_trt[trt_con$pid_trt]
-      IPCW2 = csurv1.x_con[(trt_con$pid_con)]*csurv2.x_con[(trt_con$pid_con)]
+      trt_id = as.factor(trt_con$pid_trt); levels(trt_id) = 1:num1
+      con_id = as.factor(trt_con$pid_con); levels(con_id) = 1:num2
+
+      IPCW1 = csurv1.x_trt[trt_id]*csurv2.x_trt[trt_id]
+      IPCW2 = csurv1.x_con[con_id]*csurv2.x_con[con_id]
 
       status_KL[,(2*l-1)] = win_status[,(2*l-1)]/IPCW2
       status_KL[,(2*l)] = win_status[,(2*l)]/IPCW1

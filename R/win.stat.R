@@ -57,8 +57,11 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
   }
 
   Delta = matrix(1,n_total,n_ep)
-  if(max(stringr::str_detect(colname.ds,"Delta"))>0){
-    Delta[,which(ep_type=="tte")] = as.matrix(data[,which(stringr::str_detect(colname.ds,"Delta"))])
+  if(max(c(stringr::str_detect(colname.ds,"Delta"),stringr::str_detect(colname.ds,"delta")))>0){
+    ind_delta = which(stringr::str_detect(colname.ds,"Delta")|stringr::str_detect(colname.ds,"delta"))
+    Delta[,which(ep_type=="tte")] = as.matrix(data[,ind_delta])
+  }else if("tte"%in%ep_type){
+    warning("No event status information detected. The default value of 1 is assigned to all individuals.")
   }
 
   Y = as.matrix(data[,which(stringr::str_detect(colname.ds,"Y"))])
@@ -132,6 +135,7 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
           "Lower limit of", 100*(1-alpha), "% CI of the net benefit: ", formatC(NB_L,digits = digit,format = "f"), "\n",
           "Upper limit of", 100*(1-alpha), "% CI of the net benefit: ", formatC(NB_U,digits = digit,format = "f"), "\n",
           "\n")
+      return(invisible(NULL))
     }else{
       res = list(Win_statisitc = Win_statisitc, p_value = c(pvalue_WR,pvalue_NB))
       return(res)
@@ -412,6 +416,7 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
         "Lower limit of", 100*(1-alpha), "% CI of the win odds: ", formatC(stratified_WO_L,digits = digit, format = "f"), "\n",
         "Upper limit of", 100*(1-alpha), "% CI of the win odds: ", formatC(stratified_WO_U,digits = digit, format = "f"), "\n",
         "\n")
+    return(invisible(NULL))
   }else{
     res = list(Win_prop = cbind(P_trt,P_con),Win_statistic = Win_statistic, p_value = c(pvalue_WR,pvalue_NB,pvalue_WO))
     return(res)
