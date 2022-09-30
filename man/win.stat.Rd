@@ -79,11 +79,19 @@ The arguments of user defined "win.strategy" function must at least include the 
   }
 }
 \value{
+  \item{Win_prop}{The win proportion of the treatment and the control group.}
   \item{Win_statistic}{The win statistics including:
     \itemize{
       \item{Win_Ratio: }{A list for the ratio of the win proportion between the treatment and the control groups.}
       \item{Net_Benefit: }{A list for the difference of the win proportion between the treatment and the control groups.}
       \item{Win_Odds: }{A list for the win odds between the treatment and the control groups.}
+    }
+  }
+  \item{z_statistic}{The z-scores including:
+    \itemize{
+      \item{zstat_WR: }{z-score for win ratio.}
+      \item{zstat_NB: }{z-score for net benefit.}
+      \item{zstat_WO: }{z-score for win odds.}
     }
   }
   \item{pvalue}{The p-value for the test statistics including:
@@ -93,6 +101,7 @@ The arguments of user defined "win.strategy" function must at least include the 
       \item{pvalue_WO: }{p-value for win odds.}
     }
   }
+  \item{summary_ep}{The win count and win proportion of the treatment and the control group for each endpoint}
 }
 \references{
   \itemize{

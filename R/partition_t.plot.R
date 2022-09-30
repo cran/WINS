@@ -40,8 +40,11 @@ partition_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,
   }
 
   Delta = matrix(1,n_total,n_ep)
-  if(max(stringr::str_detect(colname.ds,"Delta"))>0){
-    Delta[,which(ep_type=="tte")] = as.matrix(data[,which(stringr::str_detect(colname.ds,"Delta"))])
+  if(max(c(stringr::str_detect(colname.ds,"Delta"),stringr::str_detect(colname.ds,"delta")))>0){
+    ind_delta = which(stringr::str_detect(colname.ds,"Delta")|stringr::str_detect(colname.ds,"delta"))
+    Delta[,which(ep_type=="tte")] = as.matrix(data[,ind_delta])
+  }else if("tte"%in%ep_type){
+    warning("No event status information detected. The default value of 1 is assigned to all individuals.")
   }
 
   Y = as.matrix(data[,which(stringr::str_detect(colname.ds,"Y"))])

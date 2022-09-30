@@ -75,6 +75,10 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
   #### and netbenefits from Luo et.al's method.
   #############################################################################################
   if(var_method == "Luo et al."){
+    cat("The Luo et. al's method to calculate variance is used.")
+    if(length(priority)!=2|length(levels(factor(df$stratum)))!=1){
+      stop("This option is available only for data set with two endpoints and without stratum.")
+    }
     #### Obtain parameters for Luo et. al's method
     y1 = df[,which(colnames(df) == paste0("Y_",priority[2]))]
     y2 = df[,which(colnames(df) == paste0("Y_",priority[1]))]
@@ -140,6 +144,8 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
       res = list(Win_statisitc = Win_statisitc, p_value = c(pvalue_WR,pvalue_NB))
       return(res)
     }
+  }else{
+    cat("The Dong et al.'s method to calculate variance is used.","\n")
   }
 
   #############################################################################################
@@ -177,6 +183,7 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
                                                priority = priority, n_ep = n_ep, ep_type = ep_type)$KL
   )
 
+
   #### number of patients per stratum
   N_trt = as.data.frame(table(trt$stratum))[,2]
   N_con = as.data.frame(table(con$stratum))[,2]
@@ -204,6 +211,16 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
   #### number of wins per stratum
   win_trt = KL.summary[,1]
   win_con = KL.summary[,2]
+
+
+  #### Obtain the number and the proportion of wins for each endpoint per stratum
+  summary_ep = apply(win_status, 2, func<-function(x){
+    temp1 = aggregate(x, by=list(trt_con$stratum), FUN = sum)
+    temp2 = aggregate(x, by=list(trt_con$stratum), FUN = mean)
+    temp_res = cbind(temp1,temp2[,2]); colnames(temp_res) = c("Stratum", "Count", "Proportion")
+    return(temp_res)
+  })
+
 
   #### stratum-specific win ratio, net benefit and win odds
   P_trt = win_trt/(N_trt*N_con)
@@ -352,23 +369,26 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
       ((sum(w_stratum*N_trt*N_con))^2)
   }
 
-  #### p-value
+  #### z-statistic and p-value
+  zstat_WR = log(stratified_WR)/sqrt(stratified_sig2_log_wr)
   pvalue_WR = switch(pvalue,
-                     "one-sided" = 1 - pnorm((log(stratified_WR)/sqrt(stratified_sig2_log_wr)),
+                     "one-sided" = 1 - pnorm(zstat_WR,
                                              mean = 0, sd = 1),
-                     "two-sided" = 2 - 2*pnorm(abs(log(stratified_WR)/sqrt(stratified_sig2_log_wr)),
+                     "two-sided" = 2 - 2*pnorm(abs(zstat_WR),
                                                mean = 0, sd = 1))
 
+  zstat_WO = log(stratified_WO)/sqrt(stratified_sig2_log_wo)
   pvalue_WO = switch(pvalue,
-                     "one-sided" = 1 - pnorm((log(stratified_WO)/sqrt(stratified_sig2_log_wo)),
+                     "one-sided" = 1 - pnorm(zstat_WO,
                                              mean = 0, sd = 1),
-                     "two-sided" = 2 - 2*pnorm(abs(log(stratified_WO)/sqrt(stratified_sig2_log_wo)),
+                     "two-sided" = 2 - 2*pnorm(abs(zstat_WO),
                                                mean = 0, sd = 1))
 
+  zstat_NB = stratified_NB/sqrt(stratified_sig2_nb)
   pvalue_NB = switch(pvalue,
-                     "one-sided" = 1 - pnorm((stratified_NB/sqrt(stratified_sig2_nb)),
+                     "one-sided" = 1 - pnorm(zstat_NB,
                                              mean = 0, sd = 1),
-                     "two-sided" = 2 - 2*pnorm(abs(stratified_NB/sqrt(stratified_sig2_nb)),
+                     "two-sided" = 2 - 2*pnorm(abs(zstat_NB),
                                                mean = 0, sd = 1))
 
   #### 100*(1-alpha)% CI
@@ -418,7 +438,14 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
         "\n")
     return(invisible(NULL))
   }else{
-    res = list(Win_prop = cbind(P_trt,P_con),Win_statistic = Win_statistic, p_value = c(pvalue_WR,pvalue_NB,pvalue_WO))
+    Win_prop = data.frame(stratum = as.numeric(levels(factor(trt_con$stratum))),P_trt=P_trt,P_con=P_con)
+    z_statistic = data.frame(cbind(zstat_WR,zstat_NB,zstat_WO)); rownames(z_statistic) = "value"
+    p_value = data.frame(cbind(pvalue_WR,pvalue_NB,pvalue_WO)); rownames(p_value) = "value"
+    res = list(Win_prop = Win_prop,
+               Win_statistic = Win_statistic,
+               z_statistic = z_statistic,
+               p_value = p_value,
+               summary_ep = summary_ep)
     return(res)
   }
 }
