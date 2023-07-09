@@ -1,4 +1,4 @@
-5e1f921521b0d2cc5ae556eb9e2b7748 *DESCRIPTION
+d69de51ac734cfaebfdb46985bc8b388 *DESCRIPTION
 9275d0559a5f66519e771bbd5bf81124 *NAMESPACE
 1013113052d02dba863d380648d5173f *R/covipcw.adjusted.KL.R
 0bb4d744948726ff8e2601808c4774fc *R/get.win.stat_t.R
@@ -9,9 +9,9 @@ b57ee1b985ae3afa31cc1abcde461b59 *R/original.KL.R
 8318ca401d9b006af9069e3b47ecdc55 *R/sim.data.R
 6e59e7cc3cec15b6f86c5c0ac928f363 *R/stat_t.plot.R
 b8383cac5b48db8408bb8c3e65fa20fd *R/win.stat.Luo.R
-547baf6cb55e28c5fe80897cfc7b1972 *R/win.stat.R
+c55b0adb20a2ed93ecff1716e691f1ba *R/win.stat.R
 5bbe5b2580c97cc1d8591cf1c74d3d7b *R/win.strategy.default.R
-078fd5ede10575a7963d1ca062f75e4f *build/vignette.rds
+4ae92c2b68835af5fbd10e3af7de0685 *build/vignette.rds
 a2c0f91b278bbb6e5409c88ac8968832 *data/data_binary.RData
 7635307bd733c994dde5f40be9357b15 *data/data_continuous.RData
 d4ac5afe3fda6bfe02fefb8f860a69ef *data/data_mix.RData
@@ -19,7 +19,7 @@ bc6aa556dde442c24522f61a974372c3 *data/data_mix_stratum.RData
 bf8270cefe1eec88fd4871eb43472705 *data/data_tte.RData
 48ad16b2b5a2b500cd61c91c5cb57e9d *inst/doc/vignette.R
 b9102fdcc836a6b300483ca019a8afae *inst/doc/vignette.Rmd
-2c88ddd6e65813221224ff55b0a379dd *inst/doc/vignette.pdf
+07d147de129e9ea8f65b978f00f28275 *inst/doc/vignette.pdf
 59d9475dae364d200db3648a23a7886a *man/Z_t_con.Rd
 979f3c1e739177c6ec789b35bb829f12 *man/Z_t_trt.Rd
 4ba6535885660f9a02850a2d5394b9c9 *man/data_binary.Rd

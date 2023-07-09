@@ -167,7 +167,7 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, arm.name = c(1
     win_status = win.strategy.default(trt_con = trt_con, priority = priority, tau = tau)
   }else{
     # user defined function
-    win_status = win.strategy(trt_con = trt_con, priority = priority, ...)
+    win_status = win.strategy(trt_con = trt_con, priority = priority, tau=tau, ...)
   }
 
   #############################################################################################
