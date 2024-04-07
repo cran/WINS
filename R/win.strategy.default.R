@@ -15,32 +15,29 @@ win.strategy.default<-function(trt_con, priority, tau){
 
   #### For TTE outcome: Denote the observed survival time as Y_trt and Y_con, and event status
   #### as Delta_trt and Delta_con. There is a win for the treatment group if we have:
-  ####                      Delta_con = 1 and Y_trt > Y_con + tau,
-  #### where tau denote the magnitude of difference to determine win/loss/tie.
+  ####                      Delta_con = 1 and Y_trt > Y_con + tau_l,
+  #### where tau_l denote the magnitude of difference to determine win/loss/tie.
 
   #### For continuous outcome: Denote the observed value as Y_trt and Y_con. The event status
   #### are Delta_trt = 1 and Delta_con = 1. There is a win for the treatment group if we have:
-  ####                      Delta_con = 1 and Y_trt > Y_con + tau,
-  #### where tau denote the magnitude of difference to determine win/loss/tie.
+  ####                      Delta_con = 1 and Y_trt > Y_con + tau_l,
+  #### where tau_l denote the magnitude of difference to determine win/loss/tie.
 
   #### For binary outcome (0/1): Denote the observed value as Y_trt and Y_con. The event status
   #### are Delta_trt = 1 and Delta_con = 1. There is a win for the treatment group if we have:
-  ####                      Delta_con = 1 and Y_trt > Y_con + tau,
-  #### where tau is 0.
+  ####                      Delta_con = 1 and Y_trt > Y_con + tau_l,
+  #### where tau_l is 0.
   for(l in priority){
     delta_l_trt = trt_con[,ind.delta1.trt+l-1]; delta_l_con = trt_con[,ind.delta1.con+l-1]
     Y_l_trt = trt_con[,ind.time1.trt+l-1]; Y_l_con = trt_con[,ind.time1.con+l-1]
 
     tau_l = tau[l]
-    #### Treatment won, per Endpoint l
-    win.temp1 = ( (delta_l_trt == 1 & delta_l_con == 1 & Y_l_trt > (Y_l_con + tau_l)) |
-                    (delta_l_trt < 1  & delta_l_con == 1 & (Y_l_con + tau_l) < Y_l_trt) )
 
-    #### Control won, per Endpoint l
-    win.temp2 = ( (delta_l_trt == 1 & delta_l_con == 1 & Y_l_trt < (Y_l_con + tau_l)) |
-                    (delta_l_trt == 1 & delta_l_con < 1  & Y_l_trt < (Y_l_con + tau_l)) )
-
-    win.status0 = cbind(win.status0,win.temp1,win.temp2)
+    win.temp1 = ((delta_l_trt == 1 & delta_l_con == 1 & Y_l_trt > (Y_l_con + tau_l)) |
+                   (delta_l_trt < 1 & delta_l_con == 1 & Y_l_trt > (Y_l_con + tau_l)))
+    win.temp2 = ((delta_l_trt == 1 & delta_l_con == 1 & Y_l_con > (Y_l_trt + tau_l)) |
+                   (delta_l_trt == 1 & delta_l_con < 1 & Y_l_con > (Y_l_trt + tau_l)))
+    win.status0 = cbind(win.status0, win.temp1, win.temp2)
   }
 
   #### prioritize: once a winner is determined, then all the subsequent is set to zero
@@ -58,3 +55,4 @@ win.strategy.default<-function(trt_con, priority, tau){
 
   return(win_status)
 }
+

@@ -14,23 +14,22 @@ win.strategy = NULL, ...)
 }
 \arguments{
   \item{data}{The analysis dataset which contains the following variables:
-    \itemize{
+    \describe{
       \item{arm: }{A vector for the treatment groups. Alternative names for "arm" include "trt", "treat" and "treatment".}
       \item{id: }{A vector for the patient id.}
       \item{stratum: }{A vector for the stratum.}
       \item{Delta_j: }{A vector for the event status of the j-th endpoint if the endpoint is a time-to-event outcome (1=event, 0=censored).}
       \item{Y_j: }{A vector for the outcome of the j-th endpoint, for time-to-event outcome, Y_j is a vector for the observed time.}
-      \item{Start_time: } A vector for the time when each of the individuals is first accrued to study.
-    }
-  }
+      \item{Start_time: }{A vector for the time when each of the individuals is first accrued to study.}
+      }}
   \item{Ctime}{A vector of study times, at which the win proportions are to be plotted. Study time for a subject is the time since the subject is accrued, default is Inf.}
   \item{arm.name}{A vector for the two treatments, default to be c(1,2). The first value is for the treatment group, and the second value is for the control group.}
   \item{priority}{Importance order (from the most to the least important). For example, given three endpoints with the importance order as Endpoint 3, Endpoint 2, and Endpoint 1, input priority = c(3,2,1).}
   \item{censoring_adjust}{The method to adjust censoring for the kernal functions. Possible choices are listed below.
-    \itemize{
-      \item{"No": } {Without an adjustment.}
-      \item{"IPCW": } {IPCW (inverse-probability-of-censoring weighting) adjustment for censoring using the Kaplan-Meier estimator.}
-      \item{"CovIPCW": } {IPCW adjustment for censoring using the time dependent Cox model.}
+    \describe{
+      \item{"No": }{Without an adjustment.}
+      \item{"IPCW": }{IPCW (inverse-probability-of-censoring weighting) adjustment for censoring using the Kaplan-Meier estimator.}
+      \item{"CovIPCW": }{IPCW adjustment for censoring using the time dependent Cox model.}
     }
   }
   \item{Z_t_trt}{A matrix of the covariate history in the treatment group, each row is a (p+2) vector: the first two columns are id, time, the other p columns are the covariates (vector of length p). The baseline covariates are provided as the observed covariates corresponding to time 0.}

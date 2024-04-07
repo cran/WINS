@@ -11,7 +11,7 @@ win.strategy.default(trt_con, priority, tau)
 }
 \arguments{
   \item{trt_con}{Given N_t subjects in the treatment group and N_c subjects in the control group, there are N_t*N_c pairs, each row represents a pair. The analysis dataset trt_con contains the following variables:
-    \itemize{
+    \describe{
       \item{stratum: }{A vector for the stratum number of the unmatched pairs.}
     \item{pid_trt: }{A vector for the subject id of the individuals from the treatment group within each unmatched pair.}
     \item{pid_con: }{A vector for the subject id of the individuals from the control group within each unmatched pair.}

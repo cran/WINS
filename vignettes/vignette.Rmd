@@ -1,6 +1,6 @@
 ---
 title: "Introduction to the R Package `WINS`"
-author: 'Ying Cui and Bo Huang^[Affiliation: Emory University, Pfizer Inc.]'
+author: 'Ying Cui and Bo Huang^[Affiliation: Stanford University, Pfizer Inc.]'
 date: "`r Sys.Date()`"
 output:
   pdf_document: default
@@ -45,10 +45,12 @@ P_t = \frac{\sum_{i=1}^{N_t}\sum_{l=1}^{N_c}K_{il}}{N_tN_c} \text{ and } P_c = \
 $$
 where $K_{il}$ and $L_{il}$ are the kernel functions as defined above.
 
-Since the pioneering work by Pocock et.al (2012), the win statistics have received much attention in methodological research. Methods have been developed to correct for bias in the presence of censoring and to extend the use to stratified analysis. For example, Dong et.al (2018) considered a clinical trial with patients randomized into two groups with $M$ strata and proposed the stratified win ratio in a similar way as the Mantel-Haenszel stratified odds ratio. 
+Since the pioneering work by Pocock et.al (2012), the win statistics have received much attention in methodological research. Methods have been developed to correct for bias in the presence of censoring and to extend the use to stratified analysis. For example, Dong et.al (2018, 2023) considered a clinical trial with patients randomized into two groups with $M$ strata and proposed the stratified win ratio in a similar way as the Mantel-Haenszel stratified odds ratio. 
 To estimate the win proportions and win statistics in the presence of independent or dependent censoring, Dong et.al (2020, 2021) introduced the inverse-probability-of-censoring weighting (IPCW) adjusted method and CovIPCW-adjusted method using baseline covariates and/or time-dependent covariates that can predict the dependent censoring. 
+Moreover, Wang et.al (2023) proposes an adjusted win ratio to control for baseline imbalances in covariates by inverse probability of treatment weighting (IPTW) method. 
 
-In Pocock et.al (2012), the confidence interval was constructed based on bootstrap resampling, and the hypothesis testing was based on the non-parametric method. To provide a more efficient inference procedure, Luo et al. (2015) developed a close-form variance estimator for the win ratio and the win difference only for cases with two time-to-event endpoints. Later on, Dong et al. (2016) and Bebu and Lachin (2016) developed a more generalized close-form variance estimator for the win statistics which has the flexibility to allow for any number of endpoints.
+
+In Pocock et.al (2012), the confidence interval was constructed based on bootstrap resampling, and the hypothesis testing was based on the non-parametric method. To provide a more efficient inference procedure, Luo et al. (2015) developed a close-form variance estimator for the win ratio and the win difference only for cases with two time-to-event endpoints. Later on, Dong et al. (2016) and Bebu and Lachin (2016) developed a more generalized close-form variance estimator for the win statistics which has the flexibility to allow for any number of endpoints. Moreover, Dong et al. (2023) studied the relationship among the three estimated win statistics (WR, WO and NB) and justify that WR, WO, and NB can complement one another to show the strength of the treatment effect. Meanwhile, though it should be enough to use and present only one of WR, WO, or NB for clinical trial design and analysis, presenting all together can give a more detailed picture of an analysis.
 
 In the next sections, we will provide some simulated examples to illustrate the use of our R package `WINS` to analyze prioritized multiple outcomes.
 
@@ -71,7 +73,7 @@ The example dataset `data_binary` contains 3 binary outcomes.
 head(data_binary)
 
 res_binary <- win.stat(data = data_binary, ep_type = "binary", priority = c(1:3),
-                       weight = "unstratified", arm.name = c("A","B"), alpha=0.05, 
+                       stratum.weight = "unstratified", arm.name = c("A","B"), alpha=0.05, 
                        digit = 3,pvalue = "two-sided")
 ```
 
@@ -86,7 +88,7 @@ head(data_continuous)
 
 res_continuous <- win.stat(data = data_continuous, ep_type = "continuous", 
                            arm.name = c("A","B"),tau = 0, priority = c(1:3), 
-                           weight = "unstratified", alpha=0.05, digit = 3,
+                           stratum.weight = "unstratified", alpha=0.05, digit = 3,
                            pvalue = "two-sided")
 ```
 
@@ -94,7 +96,7 @@ Note that in this example, the $WR=WO$ because there are no ties for continuous 
 
 ### An example with three time-to-event endpoints
 
-For time-to-event (TTE) outcomes, the adjustment for censoring can be specified in the option `censoring_adjust`. 
+For time-to-event (TTE) outcomes, the adjustment for censoring can be specified in the option `method`. 
 
 For illustration, we first calculate the win statistics without using the IPCW approach to dealing with the censoring. The example code is presented below.
 
@@ -105,31 +107,31 @@ head(data_tte)
 ### Without using the IPCW approach to dealing with the censoring
 res_tte <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"),
                     tau = 0.1, priority = c(1:3), alpha = 0.05, digit = 3,
-                    weight = "unstratified", censoring_adjust = "No", 
+                    stratum.weight = "unstratified", method = "unadjusted", 
                     pvalue = "two-sided")
 ```
 
-When censoring is assumed to be independent of the outcomes, we provide the option `censoring_adjust = "IPCW"` to calculate IPCW-adjusted win statistics (Dong et al., 2020). The example code is presented below.
+When censoring is assumed to be independent of the outcomes, we provide the option `method = "ipcw"` to calculate IPCW-adjusted win statistics (Dong et al., 2020). The example code is presented below.
 
 ```{r, eval=TRUE,echo=TRUE,warning=FALSE}
 ### IPCW adjustment for independent censoring
 res_tte_ipcw <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"),
                          tau = 0.1, priority = c(1:3), alpha = 0.05, digit = 3, 
-                         weight = "unstratified", censoring_adjust = "IPCW", 
+                         stratum.weight = "unstratified", method = "ipcw", 
                          pvalue = "two-sided")
 ```
 
-When censoring is suspected to be dependent on baseline or time dependent covariates which correlate with the outcomes, we provide the option `censoring_adjust = "CovIPCW"` to calculate CovIPCW-adjusted win statistics (Dong et al., 2021). The example code is presented below.
+When censoring is suspected to be dependent on baseline or time dependent covariates which correlate with the outcomes, we provide the option `method = "covipcw"` to calculate CovIPCW-adjusted win statistics (Dong et al., 2021). The example code is presented below.
 
 ```{r, eval=TRUE,echo=TRUE,warning=FALSE}
 head(Z_t_trt)
 
 ### CovIPCW adjustment for dependent censoring
 res_tte_covipcw <- win.stat(data = data_tte, ep_type = "tte", tau = 0.1, 
-                            arm.name = c("A","B"), weight = "unstratified",
+                            arm.name = c("A","B"), stratum.weight = "unstratified",
                             Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
                             priority = c(1:3), alpha = 0.05, digit = 3,
-                            censoring_adjust = "CovIPCW", pvalue = "two-sided")
+                            method = "covipcw", pvalue = "two-sided")
 ```
 
 In the last two examples, there is $WR=WO$ because we adjusted the win proportions so that the tie proportion is not negative (i.e. equal to zero after adjustment) after IPCW adjustment. 
@@ -147,8 +149,8 @@ head(data_mix)
 
 res_mix <- win.stat(data = data_mix, ep_type = c("tte","continuous","continuous"),
                     arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
-                    alpha = 0.05, digit = 3, censoring_adjust = "No",
-                    weight = "unstratified", pvalue = "two-sided")
+                    alpha = 0.05, digit = 3, method = "unadjusted",
+                    stratum.weight = "unstratified", pvalue = "two-sided")
 ```
 
 When there is at least one TTE endpoints among all, the option censoring_adjust to calculate IPCW-adjusted and CovIPCW-adjusted win statistic is available.
@@ -160,8 +162,8 @@ The example code is presented below.
 res_mix_ipcw <- win.stat(data = data_mix, 
                          ep_type = c("tte","continuous","continuous"), 
                          arm.name = c("A","B"), tau = 0.1, priority = c(1:3),
-                         alpha = 0.05, digit = 3, censoring_adjust = "IPCW",
-                         weight="unstratified", pvalue = "two-sided")
+                         alpha = 0.05, digit = 3, method = "ipcw",
+                         stratum.weight="unstratified", pvalue = "two-sided")
 ```
 
 ### An example with a mixture of endpoint types: two continuous and one TTE with three strata
@@ -180,8 +182,8 @@ Firstly, we provide the option to assign equal weights for all the strata, e.g.,
 res_mix_equal <- win.stat(data = data_mix_stratum, 
                           ep_type = c("tte","continuous","continuous"), 
                           arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
-                          alpha = 0.05, digit = 3, censoring_adjust = "No", 
-                          weight = "equal", pvalue = "one-sided")
+                          alpha = 0.05, digit = 3, method = "unadjusted", 
+                          stratum.weight = "equal", pvalue = "one-sided")
 ```
 
 Then we consider the option to assign the weight for the $m$-th stratum as $w^{(m)} = 1/N^{(m)}$.
@@ -193,8 +195,8 @@ head(data_mix_stratum)
 res_mix_MH <- win.stat(data = data_mix_stratum, 
                        ep_type = c("tte","continuous","continuous"), 
                        arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
-                       alpha = 0.05, digit = 3, censoring_adjust = "No", 
-                       weight = "MH-type", pvalue = "one-sided")
+                       alpha = 0.05, digit = 3, method = "unadjusted", 
+                       stratum.weight = "MH-type", pvalue = "one-sided")
 ```
 
 In the above example, the stratified win ratio is proposed in a similar way as the Mantel-Haenszel stratified odds ratio. Specifically, given $M$ stratum, the stratum-specific wins are weighted to estimate the stratified win ratio. 
@@ -211,8 +213,8 @@ The example code is presented below.
 res_mix_wt1 <- win.stat(data = data_mix_stratum, 
                         ep_type = c("tte","continuous","continuous"), 
                         arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
-                        alpha = 0.05, digit = 3, censoring_adjust = "No", 
-                        weight = "wt.stratum1", pvalue = "one-sided")
+                        alpha = 0.05, digit = 3, method = "unadjusted", 
+                        stratum.weight = "wt.stratum1", pvalue = "one-sided")
 ```
 
 When there exist at least one TTE endpoints, we further provide a third option to set weight directly to the win statistics in each stratum relative to the number of events, i.e., the stratified win ratio is defined as
@@ -227,9 +229,21 @@ The example code is presented below.
 res_mix_wt2 <- win.stat(data = data_mix_stratum, 
                         ep_type = c("tte","continuous","continuous"), 
                         arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
-                        alpha = 0.05, digit = 3, censoring_adjust = "No", 
-                        weight = "wt.stratum2", pvalue = "one-sided")
+                        alpha = 0.05, digit = 3, method = "unadjusted", 
+                        stratum.weight = "wt.stratum2", pvalue = "one-sided")
 ```
+
+### An example to conduct IPTW-adjusted win statistics analysis
+In this example, the IPTW-adjusted win statistics proposed in Wang et al. (2023) are calculated.
+```{r, eval=TRUE,echo=TRUE,warning=FALSE}
+individual.weight <- rep(1,nrow(data_tte))
+res_iptw <- win.stat(data = data_tte, 
+                     ep_type = c("tte","tte","tte"), iptw.weight = individual.weight,
+                     arm.name = c("A","B"), tau = 0, priority = c(1:3), 
+                     alpha = 0.05, digit = 3, method = "iptw", 
+                     stratum.weight = "equal", pvalue = "one-sided")
+```
+
 
 ## Data simulation with the function `sim.data`
 
@@ -320,29 +334,45 @@ priority = c(3,2,1), tau = 0, plotTimeUnit = "years", trt_group = "trt")
 
 ## Reference
 
-- Finkelstein, D.M. and Schoenfeld, D.A., 1999. Combining mortality and longitudinal measures in clinical trials. Statistics in medicine, 18(11), pp.1341-1354.
+- Bebu, I. and Lachin, J.M., 2016. Large sample inference for a win ratio analysis of a composite outcome based on prioritized components. Biostatistics.
 
-- Buyse, M., 2010. Generalized pairwise comparisons of prioritized outcomes in the two‐sample problem. Statistics in medicine, 29(30), pp.3245-3257.
+- Buyse, M., 2010. Generalized pairwise comparisons of prioritized outcomes in the two‐sample problem. Statistics in medicine.
 
-- Pocock, S.J., Ariti, C.A., Collier, T.J. and Wang, D., 2012. The win ratio: a new approach to the analysis of composite endpoints in clinical trials based on clinical priorities. European heart journal, 33(2), pp.176-182.
+- Cui, Y., Dong, G., Kuan, P.F. and Huang, B., 2022. Evidence synthesis analysis with prioritized benefit outcomes in oncology clinical trials. Journal of Biopharmaceutical Statistics.
 
-- Luo, X., Tian, H., Mohanty, S. and Tsai, W.Y., 2015. An alternative approach to confidence interval estimation for the win ratio statistic. Biometrics, 71(1), pp.139-145.
+- Dong, G., Li, D., Ballerstedt, S. and Vandemeulebroecke, M., 2016. A generalized analytic solution to the win ratio to analyze a composite endpoint considering the clinical importance order among components. Pharmaceutical statistics.
 
-- Bebu, I. and Lachin, J.M., 2016. Large sample inference for a win ratio analysis of a composite outcome based on prioritized components. Biostatistics, 17(1), pp.178-187.
+- Dong, G., Qiu, J., Wang, D. and Vandemeulebroecke, M., 2018. The stratified win ratio. Journal of biopharmaceutical statistics.
 
-- Dong, G., Li, D., Ballerstedt, S. and Vandemeulebroecke, M., 2016. A generalized analytic solution to the win ratio to analyze a composite endpoint considering the clinical importance order among components. Pharmaceutical statistics, 15(5), pp.430-437.
+- Dong, G., Huang, B., Chang, Y.W., Seifu, Y., Song, J. and Hoaglin, D.C., 2020. The win ratio: Impact of censoring and follow‐up time and use with nonproportional hazards. Pharmaceutical statistics.
 
-- Dong, G., Qiu, J., Wang, D. and Vandemeulebroecke, M., 2018. The stratified win ratio. Journal of biopharmaceutical statistics, 28(4), pp.778-796.
+- Dong, G., Mao, L., Huang, B., Gamalo-Siebers, M., Wang, J., Yu, G. and Hoaglin, D.C., 2020. The inverse-probability-of-censoring weighting (IPCW) adjusted win ratio statistic: an unbiased estimator in the presence of independent censoring. Journal of biopharmaceutical statistics.
 
-- Finkelstein, D.M. and Schoenfeld, D.A., 2019. Graphing the Win Ratio and its components over time. Statistics in medicine, 38(1), pp.53-61.
+- Dong, G., Hoaglin, DC., Qiu, J., Matsouaka, RA., Chang, Y., Wang, J., Vandemeulebroecke, M., 2020. The win ratio: on interpretation and handling of ties. Statistics in Biopharmaceutical Research.
 
-- Dong, G., Huang, B., Chang, Y.W., Seifu, Y., Song, J. and Hoaglin, D.C., 2020. The win ratio: Impact of censoring and follow‐up time and use with nonproportional hazards. Pharmaceutical statistics, 19(3), pp.168-177.
+- Dong, G., Huang, B., Wang, D., Verbeeck, J., Wang, J. and Hoaglin, D.C., 2021. Adjusting win statistics for dependent censoring. Pharmaceutical Statistics.
 
-- Dong, G., Mao, L., Huang, B., Gamalo-Siebers, M., Wang, J., Yu, G. and Hoaglin, D.C., 2020. The inverse-probability-of-censoring weighting (IPCW) adjusted win ratio statistic: an unbiased estimator in the presence of independent censoring. Journal of biopharmaceutical statistics, 30(5), pp.882-899.
+- Dong, G., Huang, B., Verbeeck, J., Cui, Y., Song, J., Gamalo‐Siebers, M., Wang, D., Hoaglin, D.C., Seifu, Y., Mütze, T. and Kolassa, J., 2022. Win statistics (win ratio, win odds, and net benefit) can complement one another to show the strength of the treatment effect on time‐to‐event outcomes. Pharmaceutical Statistics.
 
-- Dong, G., Hoaglin, DC., Qiu, J., Matsouaka, RA., Chang, Y., Wang, J., Vandemeulebroecke, M., 2020. The win ratio: on interpretation and handling of ties. Statistics in Biopharmaceutical Research, 12(1), pp.99-106
+- Dong, G., Hoaglin, D.C., Huang, B., Cui, Y., Wang, D., Cheng, Y. and Gamalo‐Siebers, M., 2023. The stratified win statistics (win ratio, win odds, and net benefit). Pharmaceutical Statistics.
 
-- Dong, G., Huang, B., Wang, D., Verbeeck, J., Wang, J. and Hoaglin, D.C., 2021. Adjusting win statistics for dependent censoring. Pharmaceutical Statistics, 20(3), pp.440-450.
+- Finkelstein, D.M. and Schoenfeld, D.A., 1999. Combining mortality and longitudinal measures in clinical trials. Statistics in medicine.
+
+- Finkelstein, D.M. and Schoenfeld, D.A., 2019. Graphing the Win Ratio and its components over time. Statistics in medicine.
+
+- Luo, X., Tian, H., Mohanty, S. and Tsai, W.Y., 2015. An alternative approach to confidence interval estimation for the win ratio statistic. Biometrics.
+
+- Pocock, S.J., Ariti, C.A., Collier, T.J. and Wang, D., 2012. The win ratio: a new approach to the analysis of composite endpoints in clinical trials based on clinical priorities. European heart journal.
+
+- Wang D, Pocock S., 2016. A win ratio approach to comparing continuous non-normal
+outcomes in clinical trials. Pharmaceutical Statistics.
+
+- Wang, D., Zheng S., Cui, Y., He, N., Chen, T., Huang, B., 2023. Adjusted win ratio using inverse probability treatment weighting (IPTW) propensity score analysis. Journal of Biopharmaceutical Statistics.
+
+- Zheng S, Wang D, Qiu J, Chen T, Gamalo M., 2023. A win ratio approach for comparing
+crossing survival curves in clinical trials. Journal of Biopharmaceutical Statistics.
+
+
 
 
 

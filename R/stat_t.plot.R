@@ -1,12 +1,42 @@
 stat_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
                         statistic = c("WR","NB","WO"), Z_t_trt = NULL, Z_t_con = NULL,tau = 0,
-                        weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
+                        stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
                         censoring_adjust = c("No","IPCW","CovIPCW"),
                         win.strategy = NULL, plotTimeUnit = NULL, plot_CI = FALSE, alpha = 0.05,...){
   #### match the argument
   statistic = match.arg(statistic)
-  weight = match.arg(weight)
+  stratum.weight = match.arg(stratum.weight)
   censoring_adjust = match.arg(censoring_adjust)
+
+  #### Remove missing values
+  colname.ds = colnames(data)
+
+  if(sum(is.na(data))>0){
+    if(max(c("arm","trt","treat","treatment")%in%colname.ds)==TRUE){
+      arm0 = data[,which(colname.ds%in%c("arm","trt","treat","treatment"))]
+    }else{
+      stop("The treatment variable is not found. Please rename the treatment variable to arm, trt, treat or treatment.")
+    }
+    ind.missing.trt = which(apply(data[arm0==arm.name[1],], 1, func<-function(x) sum(is.na(x))>0))
+    ind.missing.con = which(apply(data[arm0==arm.name[2],], 1, func<-function(x) sum(is.na(x))>0))
+    if(is.null(Z_t_trt) == FALSE){
+      if("id"%in%colname.ds==TRUE){
+        if(length(ind.missing.trt) > 0){
+          id_trt0 = data[arm0==arm.name[1],which(colname.ds%in%c("id"))]
+          Z_t_trt = Z_t_trt[Z_t_trt$id %in% id_trt0[-ind.missing.trt],]
+        }
+        if(length(ind.missing.con) > 0){
+          id_con0 = data[arm0==arm.name[2],which(colname.ds%in%c("id"))]
+          Z_t_con = Z_t_con[Z_t_con$id %in% id_con0[-ind.missing.con],]
+        }
+      }else{
+        stop("The id variable is not found in Z_t_trt and Z_t_con.")
+      }
+    }
+    data = na.omit(data)
+    cat(length(ind.missing.trt)," and ",length(ind.missing.con),
+        " objects with missing values are removed in the treatment and control group, respectively.","\n")
+  }
 
   #### obtain the number of endpoints and total number of individuals
   n_ep = length(priority)
@@ -22,14 +52,13 @@ stat_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
   #############################################################################################
   #### Reorganize the data
   #############################################################################################
-  colname.ds = colnames(data)
   if(max(c("arm","trt","treat","treatment")%in%colname.ds)==TRUE){
     arm = data[,which(colname.ds%in%c("arm","trt","treat","treatment"))]
   }else{
     stop("The treatment variable is not found. Please rename the treatment variable to arm, trt, treat or treatment.")
   }
 
-  if(("stratum"%in%colname.ds)==TRUE && weight != "unstratified"){
+  if(("stratum"%in%colname.ds)==TRUE && stratum.weight != "unstratified"){
     stratum = data[,which(colname.ds=="stratum")]
   }else{
     # The unstratified win statistics are calculated as the special case for stratified analysis with only one stratum.
@@ -89,7 +118,7 @@ stat_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
       res_t = get.win.stat_t(trt = trt, con = con, ep_type = ep_type, priority = priority,
                              Ctimej = Ctime[j], Start_time_trt = Start_time_trt,
                              Start_time_con = Start_time_con, Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
-                             tau = tau, weight = weight, censoring_adjust = censoring_adjust,
+                             tau = tau, stratum.weight = stratum.weight, censoring_adjust = censoring_adjust,
                              win.strategy = win.strategy, ...)
       ind_stat = switch (statistic,
                          "WR" = 1,
@@ -105,7 +134,7 @@ stat_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
       res_t = get.win.stat_t(trt = trt, con = con, ep_type = ep_type, priority = priority,
                              Ctimej = Ctime[j], Start_time_trt = Start_time_trt,
                              Start_time_con = Start_time_con, Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
-                             tau = tau, weight = weight, censoring_adjust = censoring_adjust,
+                             tau = tau, stratum.weight = stratum.weight, censoring_adjust = censoring_adjust,
                              win.strategy = win.strategy, return_CI = TRUE, pvalue = pvalue,
                              alpha = alpha, ...)
       ind_stat = switch (statistic,

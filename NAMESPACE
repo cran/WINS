@@ -1,8 +1,8 @@
 export(partition_t.plot)
 export(sim.data)
 export(stat_t.plot)
-export(win.stat.Luo)
 export(win.stat)
 export(win.strategy.default)
 importFrom("stats", "aggregate", "pnorm", "qnorm", "rexp", "runif",
                "time")
+importFrom("stats", "na.omit")

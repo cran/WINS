@@ -21,7 +21,7 @@ rate_trt = NULL, rate_con = NULL, max_accrual_time = NULL)
   \item{n_stratum}{The number of strata. For the simulated dataset, n_stratum is fixed at 1 assuming homogeneous population.}
   \item{arm.name}{A vector for the labels of the two experimental arms, default to be c(1,2). The first label is for the treatment group, and the second label is for the control group.}
   \item{ep_type}{A vector for the outcome type for each endpoint.  If scalar, the function will treat all the endpoints as the same type. The types of outcome include:
-    \itemize{
+    \describe{
       \item{"tte": }{Time-to-event outcome, with the default win strategy: the treatment group wins if min(T_trt, C_trt, C_con + tau) > T_con + tau.}
       \item{"continuous": }{Continuous outcome, with the default win strategy: the treatment group wins if Y_trt > Y_con + tau.}
       \item{"binary": }{Binary outcome coded as 0/1, with the default win strategy: 1 is the winner over 0.}
@@ -45,7 +45,7 @@ To learn more about "copula", please refer to a discussion on modelling dependen
 }
 \value{
   \item{data}{The analysis dataset which contains the following variables:
-    \itemize{
+    \describe{
       \item{arm: }{A vector for the treatment group (trt = 1 | 2), 1 represents the treatment group and 2 represents the control group.}
       \item{stratum: }{A vector for the stratum number. Alternative names for "stratum" include "group", "level" and "grade".}
       \item{Delta_j: }{A vector for the event status of the j-th endpoint if the endpoint is time-to-event outcome (1=event, 0=censored).}

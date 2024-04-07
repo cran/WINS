@@ -11,7 +11,7 @@ library(WINS)
 head(data_binary)
 
 res_binary <- win.stat(data = data_binary, ep_type = "binary", priority = c(1:3),
-                       weight = "unstratified", arm.name = c("A","B"), alpha=0.05, 
+                       stratum.weight = "unstratified", arm.name = c("A","B"), alpha=0.05, 
                        digit = 3,pvalue = "two-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
@@ -19,7 +19,7 @@ head(data_continuous)
 
 res_continuous <- win.stat(data = data_continuous, ep_type = "continuous", 
                            arm.name = c("A","B"),tau = 0, priority = c(1:3), 
-                           weight = "unstratified", alpha=0.05, digit = 3,
+                           stratum.weight = "unstratified", alpha=0.05, digit = 3,
                            pvalue = "two-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
@@ -28,14 +28,14 @@ head(data_tte)
 ### Without using the IPCW approach to dealing with the censoring
 res_tte <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"),
                     tau = 0.1, priority = c(1:3), alpha = 0.05, digit = 3,
-                    weight = "unstratified", censoring_adjust = "No", 
+                    stratum.weight = "unstratified", method = "unadjusted", 
                     pvalue = "two-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
 ### IPCW adjustment for independent censoring
 res_tte_ipcw <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"),
                          tau = 0.1, priority = c(1:3), alpha = 0.05, digit = 3, 
-                         weight = "unstratified", censoring_adjust = "IPCW", 
+                         stratum.weight = "unstratified", method = "ipcw", 
                          pvalue = "two-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
@@ -43,33 +43,33 @@ head(Z_t_trt)
 
 ### CovIPCW adjustment for dependent censoring
 res_tte_covipcw <- win.stat(data = data_tte, ep_type = "tte", tau = 0.1, 
-                            arm.name = c("A","B"), weight = "unstratified",
+                            arm.name = c("A","B"), stratum.weight = "unstratified",
                             Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
                             priority = c(1:3), alpha = 0.05, digit = 3,
-                            censoring_adjust = "CovIPCW", pvalue = "two-sided")
+                            method = "covipcw", pvalue = "two-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
 head(data_mix)
 
 res_mix <- win.stat(data = data_mix, ep_type = c("tte","continuous","continuous"),
                     arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
-                    alpha = 0.05, digit = 3, censoring_adjust = "No",
-                    weight = "unstratified", pvalue = "two-sided")
+                    alpha = 0.05, digit = 3, method = "unadjusted",
+                    stratum.weight = "unstratified", pvalue = "two-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
 ### IPCW adjustment for independent censoring
 res_mix_ipcw <- win.stat(data = data_mix, 
                          ep_type = c("tte","continuous","continuous"), 
                          arm.name = c("A","B"), tau = 0.1, priority = c(1:3),
-                         alpha = 0.05, digit = 3, censoring_adjust = "IPCW",
-                         weight="unstratified", pvalue = "two-sided")
+                         alpha = 0.05, digit = 3, method = "ipcw",
+                         stratum.weight="unstratified", pvalue = "two-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
 res_mix_equal <- win.stat(data = data_mix_stratum, 
                           ep_type = c("tte","continuous","continuous"), 
                           arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
-                          alpha = 0.05, digit = 3, censoring_adjust = "No", 
-                          weight = "equal", pvalue = "one-sided")
+                          alpha = 0.05, digit = 3, method = "unadjusted", 
+                          stratum.weight = "equal", pvalue = "one-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
 head(data_mix_stratum)
@@ -77,22 +77,30 @@ head(data_mix_stratum)
 res_mix_MH <- win.stat(data = data_mix_stratum, 
                        ep_type = c("tte","continuous","continuous"), 
                        arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
-                       alpha = 0.05, digit = 3, censoring_adjust = "No", 
-                       weight = "MH-type", pvalue = "one-sided")
+                       alpha = 0.05, digit = 3, method = "unadjusted", 
+                       stratum.weight = "MH-type", pvalue = "one-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
 res_mix_wt1 <- win.stat(data = data_mix_stratum, 
                         ep_type = c("tte","continuous","continuous"), 
                         arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
-                        alpha = 0.05, digit = 3, censoring_adjust = "No", 
-                        weight = "wt.stratum1", pvalue = "one-sided")
+                        alpha = 0.05, digit = 3, method = "unadjusted", 
+                        stratum.weight = "wt.stratum1", pvalue = "one-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
 res_mix_wt2 <- win.stat(data = data_mix_stratum, 
                         ep_type = c("tte","continuous","continuous"), 
                         arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
-                        alpha = 0.05, digit = 3, censoring_adjust = "No", 
-                        weight = "wt.stratum2", pvalue = "one-sided")
+                        alpha = 0.05, digit = 3, method = "unadjusted", 
+                        stratum.weight = "wt.stratum2", pvalue = "one-sided")
+
+## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
+individual.weight <- rep(1,nrow(data_tte))
+res_iptw <- win.stat(data = data_tte, 
+                     ep_type = c("tte","tte","tte"), iptw.weight = individual.weight,
+                     arm.name = c("A","B"), tau = 0, priority = c(1:3), 
+                     alpha = 0.05, digit = 3, method = "iptw", 
+                     stratum.weight = "equal", pvalue = "one-sided")
 
 ## ----eval=TRUE,echo=TRUE,warning=FALSE----------------------------------------
 #### Generate two TTE endpoints with the more important TTE endpoint expected to occur

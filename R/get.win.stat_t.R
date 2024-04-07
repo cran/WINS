@@ -1,6 +1,6 @@
 get.win.stat_t<-function(trt, con, ep_type, Z_t_trt = NULL, Z_t_con = NULL, priority = c(1,2),
                          Ctimej = Inf, Start_time_trt = NULL, Start_time_con = NULL, alpha = 0.05,
-                         tau = 0, weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
+                         tau = 0, stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
                          censoring_adjust = c("No","IPCW","CovIPCW"),
                          pvalue = c("one-sided","two-sided"),
                          win.strategy = NULL, status_only = FALSE, return_CI = FALSE,
@@ -115,31 +115,31 @@ get.win.stat_t<-function(trt, con, ep_type, Z_t_trt = NULL, Z_t_con = NULL, prio
     N_event = N_event_trt + N_event_con
 
     #### Stratified win statistics
-    w_stratum = switch(weight,
+    w_stratum = switch(stratum.weight,
                        "unstratified" = 1,
                        "equal" = rep(1/length(N),length(N)),
                        "MH-type" = (1/N)/sum(1/N),
                        "wt.stratum1" = N/sum(N),
                        "wt.stratum2" = N_event/sum(N_event)
     )
-    if(weight%in%c("unstratified","equal","MH-type")){
+    if(stratum.weight%in%c("unstratified","equal","MH-type")){
       stratified_N = sum((N_trt*N_con)*w_stratum)
     }
-    stratified_WR = switch(weight,
+    stratified_WR = switch(stratum.weight,
                            "unstratified" = sum(win_trt*w_stratum/stratified_N)/sum(win_con*w_stratum/stratified_N),
                            "equal" = sum(win_trt*w_stratum/stratified_N)/sum(win_con*w_stratum/stratified_N),
                            "MH-type" = sum(win_trt*w_stratum/stratified_N)/sum(win_con*w_stratum/stratified_N),
                            "wt.stratum1" = sum(w_stratum*WR_stratum),
                            "wt.stratum2" = sum(w_stratum*WR_stratum)
     )
-    stratified_NB = switch(weight,
+    stratified_NB = switch(stratum.weight,
                            "unstratified" = sum(win_trt*w_stratum/stratified_N)-sum(win_con*w_stratum/stratified_N),
                            "equal" = sum(win_trt*w_stratum/stratified_N)-sum(win_con*w_stratum/stratified_N),
                            "MH-type" = sum(win_trt*w_stratum/stratified_N)-sum(win_con*w_stratum/stratified_N),
                            "wt.stratum1" = sum(w_stratum*NB_stratum),
                            "wt.stratum2" = sum(w_stratum*NB_stratum)
     )
-    stratified_WO = switch(weight,
+    stratified_WO = switch(stratum.weight,
                            "unstratified" = sum((sum(win_trt*w_stratum/stratified_N) +
                                                    0.5*(1-sum(win_trt*w_stratum/stratified_N)-
                                                           sum(win_con*w_stratum/stratified_N))))/
@@ -214,7 +214,7 @@ get.win.stat_t<-function(trt, con, ep_type, Z_t_trt = NULL, Z_t_con = NULL, prio
       theta_tc = (win_trt + win_con)/2
       gam = theta_tc + 0.5*(N_trt*N_con-theta_tc-theta_tc)
 
-      if(weight%in%c("wt.stratum1","wt.stratum2")){
+      if(stratum.weight%in%c("wt.stratum1","wt.stratum2")){
         #### asymptotic variance
         sig2_wr = (sig2_trt + sig2_con - 2*sig_trt_con)/((theta_tc)^2)
         sig2_wo = (sig2_trt + sig2_con - 2*sig_trt_con)*(((N_trt*N_con)/(2*(gam^2)))^2)
