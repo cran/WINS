@@ -108,22 +108,22 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = 
                                                    ep_type = ep_type,n_ep = n_ep,
                                                    priority = priority,tau = tau,win.strategy = win.strategy,
                                                    alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
-                                                   summary.print = TRUE, ...),
+                                                   summary.print = summary.print, ...),
                 "ipcw" = ipcw.win.stat(df = df,n_total = n_total,arm.name = arm.name,id_trt=id_trt,id_con=id_con,
                                        ep_type = ep_type,n_ep = n_ep,
                                        priority = priority,tau = tau,win.strategy = win.strategy,
                                        alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
-                                       summary.print = TRUE, ...),
+                                       summary.print = summary.print, ...),
                 "covipcw" = covipcw.win.stat(df = df,Z_t_trt = Z_t_trt,Z_t_con = Z_t_con,n_total = n_total,
                                              arm.name = arm.name,id_trt=id_trt,id_con=id_con,ep_type = ep_type,n_ep = n_ep,
                                              priority = priority,tau = tau,win.strategy = win.strategy,
                                              alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
-                                             summary.print = TRUE, ...),
+                                             summary.print = summary.print, ...),
                 "iptw" = iptw.adjusted.win.stat(df = df,iptw.weight = iptw.weight,n_total = n_total,
                                                 arm.name = arm.name,id_trt=id_trt,id_con=id_con,ep_type = ep_type,n_ep = n_ep,
                                                 priority = priority,tau = tau,win.strategy = win.strategy,
                                                 alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
-                                                summary.print = TRUE, ...)
+                                                summary.print = summary.print, ...)
   )
 
   return(res)
