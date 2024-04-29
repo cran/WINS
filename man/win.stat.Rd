@@ -9,7 +9,7 @@ Calculate the win statistics for a mixture type of outcomes including time-to-ev
 \usage{
 win.stat(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = NULL,
 arm.name = c(1,2),priority = c(1,2), alpha = 0.05, digit = 5, tau = 0,
-win.strategy = NULL,pvalue = c("one-sided","two-sided"),
+np_direction = "larger", win.strategy = NULL,pvalue = c("one-sided","two-sided"),
 stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
 method = c("unadjusted","ipcw","covipcw","iptw"),
 summary.print = TRUE, ...)
@@ -40,6 +40,11 @@ summary.print = TRUE, ...)
   \item{alpha}{The significance level, default to be 0.05.}
   \item{digit}{The number of digits for the output, default to be 5.}
   \item{tau}{A vector of numerical value for the magnitude of difference to determine win/loss/tie for each endpoint. Tau is applicable for TTE endpoints and continuous endpoints; tau is fixed as 0 for binary endpoints. Default is 0 for all endpoints.}
+  \item{np_direction}{A vector of character for the direction to define a better result for each endpoint.
+      \describe{
+      \item{"larger": }{The treatment group wins if min(T_trt, C_trt, C_con + tau) > T_con + tau, for time-to-event outcomes; "the larger value wins" for continuous outcome, value 1 wins over the value 0 for binary outcome.}
+      \item{"smaller": }{The treatment group wins if min(T_trt, C_trt, C_con - tau) < T_con - tau, for time-to-event outcomes; "the smaller value wins" for continuous outcome, value 0 wins over the value 1 for binary outcome.}
+      }}
   \item{win.strategy}{The strategy to determine the win status. Default as NULL. If NULL, the default win strategy funtion "win.strategy.default" is called, see \link{win.strategy.default} for more details. Users can also define their own "win.strategy" function.}
   \item{pvalue}{The p-value type: "one-sided" or "two-sided".}
   \item{stratum.weight}{The weighting method for each stratum. Default is "unstratified" for unstratified analysis. A stratified analysis is performed if other weight option is specified. Other possible choices for this argument are listed below.

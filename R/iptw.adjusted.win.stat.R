@@ -1,9 +1,10 @@
 iptw.adjusted.win.stat<-function(df,iptw.weight,n_total,arm.name = c(1,2),id_trt,id_con,
-                                       ep_type,n_ep,priority = c(1,2),tau = c(0,0),win.strategy = NULL,
-                                       alpha = 0.05,digit = 5,
-                                       pvalue = c("one-sided","two-sided"),
-                                       stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
-                                       summary.print = TRUE, ...){
+                                 ep_type,n_ep,priority = c(1,2),tau = c(0,0),
+                                 np_direction = "larger", win.strategy = NULL,
+                                 alpha = 0.05,digit = 5,
+                                 pvalue = c("one-sided","two-sided"),
+                                 stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
+                                 summary.print = TRUE, ...){
 
   #### obtain the number of treatment and control and the individual weight in each group
   arm = df$arm
@@ -26,10 +27,12 @@ iptw.adjusted.win.stat<-function(df,iptw.weight,n_total,arm.name = c(1,2),id_trt
   #### Determine winners/losers/ties
   #############################################################################################
   if(is.null(win.strategy)){
-    win_status = win.strategy.default(trt_con = trt_con, priority = priority, tau = tau)
+    win_status = win.strategy.default(trt_con = trt_con, priority = priority, tau = tau,
+                                      np_direction = np_direction)
   }else{
     # user defined function
-    win_status = win.strategy(trt_con = trt_con, priority = priority, tau=tau, ...)
+    win_status = win.strategy(trt_con = trt_con, priority = priority, tau=tau,
+                              np_direction = np_direction, ...)
   }
 
   #############################################################################################

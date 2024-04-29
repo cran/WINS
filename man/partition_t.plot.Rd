@@ -9,8 +9,8 @@ A plot for the win proportions of the treatment/control group over the study tim
 \usage{
 partition_t.plot(data, Ctime = Inf, arm.name = c(1, 2), priority = c(1, 2),
 censoring_adjust = "No", Z_t_trt = NULL, Z_t_con = NULL, tau = 0,
-plotTimeUnit = NULL, trt_group = c("both","trt","con"),
-win.strategy = NULL, ...)
+np_direction = "larger",plotTimeUnit = NULL,
+trt_group = c("both","trt","con"), win.strategy = NULL, ...)
 }
 \arguments{
   \item{data}{The analysis dataset which contains the following variables:
@@ -35,6 +35,11 @@ win.strategy = NULL, ...)
   \item{Z_t_trt}{A matrix of the covariate history in the treatment group, each row is a (p+2) vector: the first two columns are id, time, the other p columns are the covariates (vector of length p). The baseline covariates are provided as the observed covariates corresponding to time 0.}
   \item{Z_t_con}{A matrix of the covariate history in the control group, each row is a (p+2) vector: the first two columns are id, time, the other p columns are the covariates (vector of length p). The baseline covariates are provided as the observed covariates corresponding to time 0.}
   \item{tau}{A vector of numerical value for the magnitude of difference to determine win/loss/tie for each endpoint. Tau is applicable for TTE endpoints and continuous endpoints; tau is fixed as 0 for binary endpoints. Default is 0 for all endpoints.}
+  \item{np_direction}{A vector of character for the direction to define a better result for each endpoint.
+      \describe{
+      \item{"larger": }{The treatment group wins if min(T_trt, C_trt, C_con + tau) > T_con + tau, for time-to-event outcomes; "the larger value wins" for continuous outcome, value 1 wins over the value 0 for binary outcome.}
+      \item{"smaller": }{The treatment group wins if min(T_trt, C_trt, C_con - tau) < T_con - tau, for time-to-event outcomes; "the smaller value wins" for continuous outcome, value 0 wins over the value 1 for binary outcome.}
+      }}
   \item{plotTimeUnit}{The time units, e.g., "days", "months", "years", default as NULL.}
   \item{trt_group}{An argument to decide the arms for which the win proportions over time are plotted, possible choices include "both", "trt" and "con". Default is "both", i.e., by default the win proportion over time is plotted both for the treatment group and for the control group.}
   \item{win.strategy}{The strategy to determine the win status. Default as NULL. If NULL, the default win strategy funtion "win.strategy.default" is called, see \link{win.strategy.default} for more details. Users can also define their own "win.strategy" function.}

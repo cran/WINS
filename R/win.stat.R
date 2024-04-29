@@ -1,5 +1,5 @@
 win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = NULL, arm.name = c(1,2),
-                   priority = c(1,2), alpha = 0.05, digit = 5, tau = 0,
+                   priority = c(1,2), alpha = 0.05, digit = 5, tau = 0, np_direction = "larger",
                    win.strategy = NULL,
                    pvalue = c("one-sided","two-sided"),
                    stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
@@ -58,6 +58,15 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = 
     tau = rep(tau,n_ep)
   }
 
+  #### If np_direction is input as scalar, treat all the np_direction as the same.
+  if(length(np_direction)==1){
+    np_direction = rep(np_direction,n_ep)
+  }
+
+  if("smaller"%in%np_direction & method %in% c("ipcw","covipcw")){
+    stop("The IPCW-adjusted approach is not applicable if smaller is specified for any endpoint in np_direction. Please try another method.")
+  }
+
   #############################################################################################
   #### Reorganize the data
   #############################################################################################
@@ -106,22 +115,23 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = 
   res = switch (method,
                 "unadjusted" = unadjusted.win.stat(df = df,n_total = n_total,arm.name = arm.name,id_trt=id_trt,id_con=id_con,
                                                    ep_type = ep_type,n_ep = n_ep,
-                                                   priority = priority,tau = tau,win.strategy = win.strategy,
+                                                   priority = priority,tau = tau,np_direction = np_direction,
+                                                   win.strategy = win.strategy,
                                                    alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
                                                    summary.print = summary.print, ...),
                 "ipcw" = ipcw.win.stat(df = df,n_total = n_total,arm.name = arm.name,id_trt=id_trt,id_con=id_con,
                                        ep_type = ep_type,n_ep = n_ep,
-                                       priority = priority,tau = tau,win.strategy = win.strategy,
+                                       priority = priority,tau = tau,np_direction = np_direction,win.strategy = win.strategy,
                                        alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
                                        summary.print = summary.print, ...),
                 "covipcw" = covipcw.win.stat(df = df,Z_t_trt = Z_t_trt,Z_t_con = Z_t_con,n_total = n_total,
                                              arm.name = arm.name,id_trt=id_trt,id_con=id_con,ep_type = ep_type,n_ep = n_ep,
-                                             priority = priority,tau = tau,win.strategy = win.strategy,
+                                             priority = priority,tau = tau,np_direction = np_direction,win.strategy = win.strategy,
                                              alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
                                              summary.print = summary.print, ...),
                 "iptw" = iptw.adjusted.win.stat(df = df,iptw.weight = iptw.weight,n_total = n_total,
                                                 arm.name = arm.name,id_trt=id_trt,id_con=id_con,ep_type = ep_type,n_ep = n_ep,
-                                                priority = priority,tau = tau,win.strategy = win.strategy,
+                                                priority = priority,tau = tau,np_direction = np_direction,win.strategy = win.strategy,
                                                 alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
                                                 summary.print = summary.print, ...)
   )

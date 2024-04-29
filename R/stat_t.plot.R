@@ -1,8 +1,9 @@
 stat_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
-                        statistic = c("WR","NB","WO"), Z_t_trt = NULL, Z_t_con = NULL,tau = 0,
-                        stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
-                        censoring_adjust = c("No","IPCW","CovIPCW"),
-                        win.strategy = NULL, plotTimeUnit = NULL, plot_CI = FALSE, alpha = 0.05,...){
+                      statistic = c("WR","NB","WO"), Z_t_trt = NULL, Z_t_con = NULL,tau = 0,
+                      np_direction = "larger",
+                      stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
+                      censoring_adjust = c("No","IPCW","CovIPCW"),
+                      win.strategy = NULL, plotTimeUnit = NULL, plot_CI = FALSE, alpha = 0.05,...){
   #### match the argument
   statistic = match.arg(statistic)
   stratum.weight = match.arg(stratum.weight)
@@ -47,6 +48,11 @@ stat_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
   #### If tau is input as scalar, treat all the tau as the same.
   if(length(tau)==1){
     tau = rep(tau,n_ep)
+  }
+
+  #### If np_direction is input as scalar, treat all the np_direction as the same.
+  if(length(np_direction)==1){
+    np_direction = rep(np_direction,n_ep)
   }
 
   #############################################################################################
@@ -118,7 +124,8 @@ stat_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
       res_t = get.win.stat_t(trt = trt, con = con, ep_type = ep_type, priority = priority,
                              Ctimej = Ctime[j], Start_time_trt = Start_time_trt,
                              Start_time_con = Start_time_con, Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
-                             tau = tau, stratum.weight = stratum.weight, censoring_adjust = censoring_adjust,
+                             tau = tau, np_direction = np_direction,
+                             stratum.weight = stratum.weight, censoring_adjust = censoring_adjust,
                              win.strategy = win.strategy, ...)
       ind_stat = switch (statistic,
                          "WR" = 1,
@@ -134,7 +141,8 @@ stat_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
       res_t = get.win.stat_t(trt = trt, con = con, ep_type = ep_type, priority = priority,
                              Ctimej = Ctime[j], Start_time_trt = Start_time_trt,
                              Start_time_con = Start_time_con, Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
-                             tau = tau, stratum.weight = stratum.weight, censoring_adjust = censoring_adjust,
+                             tau = tau, np_direction = np_direction,
+                             stratum.weight = stratum.weight, censoring_adjust = censoring_adjust,
                              win.strategy = win.strategy, return_CI = TRUE, pvalue = pvalue,
                              alpha = alpha, ...)
       ind_stat = switch (statistic,

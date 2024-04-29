@@ -1,6 +1,7 @@
 get.win.stat_t<-function(trt, con, ep_type, Z_t_trt = NULL, Z_t_con = NULL, priority = c(1,2),
                          Ctimej = Inf, Start_time_trt = NULL, Start_time_con = NULL, alpha = 0.05,
-                         tau = 0, stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
+                         tau = 0, np_direction = "larger",
+                         stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
                          censoring_adjust = c("No","IPCW","CovIPCW"),
                          pvalue = c("one-sided","two-sided"),
                          win.strategy = NULL, status_only = FALSE, return_CI = FALSE,
@@ -38,10 +39,12 @@ get.win.stat_t<-function(trt, con, ep_type, Z_t_trt = NULL, Z_t_con = NULL, prio
   #### Determine winners/losers/ties
   #############################################################################################
   if(is.null(win.strategy)){
-    win_status = win.strategy.default(trt_con = trt_con, priority = priority, tau = tau)
+    win_status = win.strategy.default(trt_con = trt_con, priority = priority, tau = tau,
+                                      np_direction = np_direction)
   }else{
     # user defined function
-    win_status = win.strategy(trt_con = trt_con, priority = priority, ...)
+    win_status = win.strategy(trt_con = trt_con, priority = priority,
+                              np_direction = np_direction, ...)
   }
 
   #### Obtain kernel function K and L

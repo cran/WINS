@@ -7,7 +7,7 @@ The Default Win Strategy Function.
 An intermediate function to determine the win status for each pair based on the default win strategy. Specifically, one compares each subject in the treatment group with every subject in the control group to determine the win status.
 }
 \usage{
-win.strategy.default(trt_con, priority, tau)
+win.strategy.default(trt_con, priority, tau, np_direction)
 }
 \arguments{
   \item{trt_con}{Given N_t subjects in the treatment group and N_c subjects in the control group, there are N_t*N_c pairs, each row represents a pair. The analysis dataset trt_con contains the following variables:
@@ -23,10 +23,13 @@ win.strategy.default(trt_con, priority, tau)
 }
   \item{priority}{Importance order (from the most to the least important). For example, given three endpoints with the importance order as Endpoint 3, Endpoint 2, and Endpoint 1, input priority = c(3,2,1).}
   \item{tau}{A vector of numerical value for the magnitude of difference to determine win/loss/tie for each endpoint. Tau is applicable for TTE endpoints and continuous endpoints; tau is fixed as 0 for binary endpoints. Default is 0 for all endpoints.}
+  \item{np_direction}{A vector of character for the direction to define a better result for each endpoint.
+      \describe{
+      \item{"larger": }{The treatment group wins if min(T_trt, C_trt, C_con + tau) > T_con + tau, for time-to-event outcomes; "the larger value wins" for continuous outcome, value 1 wins over the value 0 for binary outcome.}
+      \item{"smaller": }{The treatment group wins if min(T_trt, C_trt, C_con - tau) < T_con - tau, for time-to-event outcomes; "the smaller value wins" for continuous outcome, value 0 wins over the value 1 for binary outcome.}
+      }}
 }
 \details{
-Default strategy such that the treatment group wins if min(T_trt, C_trt, C_con + tau) > T_con + tau, for time-to-event outcomes; "the larger value wins" for continuous outcome, value 1 wins over the value 0 for binary outcome.
-
 Users can define their own win strategy function and input the function with the argument "win.strategy" in the "win.stat" function.
 }
 \value{

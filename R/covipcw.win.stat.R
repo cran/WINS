@@ -1,6 +1,7 @@
 covipcw.win.stat<-function(df,Z_t_trt = NULL,Z_t_con = NULL,n_total,
                         arm.name = c(1,2),id_trt,id_con,
-                        ep_type, n_ep,priority = c(1,2),tau = c(0,0),win.strategy = NULL,
+                        ep_type, n_ep,priority = c(1,2),tau = c(0,0),
+                        np_direction = "larger",win.strategy = NULL,
                         alpha = 0.05,digit = 5,
                         pvalue, stratum.weight,
                         summary.print = TRUE, ...){
@@ -20,10 +21,12 @@ covipcw.win.stat<-function(df,Z_t_trt = NULL,Z_t_con = NULL,n_total,
   #### Determine winners/losers/ties
   #############################################################################################
   if(is.null(win.strategy)){
-    win_status = win.strategy.default(trt_con = trt_con, priority = priority, tau = tau)
+    win_status = win.strategy.default(trt_con = trt_con, priority = priority, tau = tau,
+                                      np_direction = np_direction)
   }else{
     # user defined function
-    win_status = win.strategy(trt_con = trt_con, priority = priority, tau=tau, ...)
+    win_status = win.strategy(trt_con = trt_con, priority = priority, tau=tau,
+                              np_direction = np_direction, ...)
   }
 
   #############################################################################################

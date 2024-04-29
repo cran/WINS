@@ -1,7 +1,7 @@
 partition_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2), censoring_adjust = "No",
-                             Z_t_trt = NULL, Z_t_con = NULL,tau = 0,
-                             plotTimeUnit = NULL, trt_group = c("both","trt","con"),
-                             win.strategy = NULL, ...){
+                           Z_t_trt = NULL, Z_t_con = NULL,tau = 0, np_direction = "larger",
+                           plotTimeUnit = NULL, trt_group = c("both","trt","con"),
+                           win.strategy = NULL, ...){
   #### match the argument
   trt_group = match.arg(trt_group)
 
@@ -44,6 +44,11 @@ partition_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,
   #### If tau is input as scalar, treat all the tau as the same.
   if(length(tau)==1){
     tau = rep(tau,n_ep)
+  }
+
+  #### If np_direction is input as scalar, treat all the np_direction as the same.
+  if(length(np_direction)==1){
+    np_direction = rep(np_direction,n_ep)
   }
 
   #############################################################################################
@@ -107,9 +112,9 @@ partition_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,
   win_status_trt_t = NULL; win_status_con_t = NULL; win_prop_tie_t = NULL
   for(j in 1:length(Ctime)){
     res = get.win.stat_t(trt = trt, con = con, ep_type = ep_type, priority = priority,
-                              Ctimej = Ctime[j], Start_time_trt = Start_time_trt, censoring_adjust = censoring_adjust,
-                              Start_time_con = Start_time_con, Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
-                              tau = tau, win.strategy = win.strategy, status_only = TRUE, ...)
+                         Ctimej = Ctime[j], Start_time_trt = Start_time_trt, censoring_adjust = censoring_adjust,
+                         Start_time_con = Start_time_con, Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
+                         tau = tau, np_direction = np_direction, win.strategy = win.strategy, status_only = TRUE, ...)
 
     temp_trt = apply(res$win_status[,seq(1,2*n_ep-1,2)], 2, mean)
     prop_trt = cbind(time = rep(Ctime[j],n_ep), Endpoint = priority, proportion = temp_trt)

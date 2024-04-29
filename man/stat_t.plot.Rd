@@ -9,7 +9,7 @@ Plot the win statistics as a function of the study time for time-to-event endpoi
 \usage{
 stat_t.plot(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
 statistic = c("WR","NB","WO"),
-Z_t_trt = NULL, Z_t_con = NULL, tau = 0,
+Z_t_trt = NULL, Z_t_con = NULL, tau = 0,np_direction = "larger",
 stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
 censoring_adjust = c("No","IPCW","CovIPCW"),
 win.strategy = NULL, plotTimeUnit = NULL,
@@ -39,6 +39,11 @@ plot_CI = FALSE, alpha = 0.05, ...)
   \item{Z_t_trt}{A matrix for the covariate history, each row is a (p+2) vector for one record of each subject in the treatment group. The first two columns are subject id, time, the other columns are the covariates (vector of length p). The baseline covariates are provided as the observed covariates corresponding to time 0.}
   \item{Z_t_con}{A matrix for the covariate history, each row is a (p+2) vector for one record of each subject in the control group. The first two columns are subject id, time, the other columns are the covariates (vector of length p). The baseline covariates are provided as the observed covariates corresponding to time 0.}
   \item{tau}{A vector of numerical value for the magnitude of difference to determine win/loss/tie for each endpoint. If tau is input as scalar, the function treat the taus for TTE endpoints and continuous endpoints to be the same and taus for binary endpoints as 0. Default as 0 for all endpoints.}
+  \item{np_direction}{A vector of character for the direction to define a better result for each endpoint.
+      \describe{
+      \item{"larger": }{The treatment group wins if min(T_trt, C_trt, C_con + tau) > T_con + tau, for time-to-event outcomes; "the larger value wins" for continuous outcome, value 1 wins over the value 0 for binary outcome.}
+      \item{"smaller": }{The treatment group wins if min(T_trt, C_trt, C_con - tau) < T_con - tau, for time-to-event outcomes; "the smaller value wins" for continuous outcome, value 0 wins over the value 1 for binary outcome.}
+      }}
   \item{stratum.weight}{The weighting method for each stratum. Default is "unstratified" for unstratified analysis. A stratified analysis is performed if other weight option is specified. Other possible choices for this argument are listed below.
     \describe{
       \item{"MH-type": }{weight the wins with the reciprocal of the stratum size following the Mantel-Haenszel type stratified analysis as described in Dong et al. (2018).}
