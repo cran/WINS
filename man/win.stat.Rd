@@ -11,7 +11,7 @@ win.stat(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = NULL,
 arm.name = c(1,2),priority = c(1,2), alpha = 0.05, digit = 5, tau = 0,
 np_direction = "larger", win.strategy = NULL,pvalue = c("one-sided","two-sided"),
 stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
-method = c("unadjusted","ipcw","covipcw","iptw"),
+method = c("unadjusted","ipcw","covipcw","iptw","iptw_ipcw","iptw_covipcw"),
 summary.print = TRUE, ...)
 }
 \arguments{
@@ -61,6 +61,10 @@ summary.print = TRUE, ...)
       \item{"ipcw": }{IPCW adjustment for censoring with the Kaplan-Meier estimator.}
       \item{"covipcw": }{IPCW adjustment for censoring with the time dependent Cox model.}
       \item{"iptw": }{Inverse probability of treatment weighting (IPTW) method.}
+      \item{"iptw_ipcw"}{Combine the IPCW adjustment for censoring with the Kaplan-Meier estimator
+      and the Inverse probability of treatment weighting (IPTW) method.}
+      \item{"iptw_covipcw"}{Combine the IPCW adjustment for censoring with the time dependent Cox
+      model and the Inverse probability of treatment weighting (IPTW) method.}
     }
     Other methods may be added in future versions.
   }

@@ -3,7 +3,7 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = 
                    win.strategy = NULL,
                    pvalue = c("one-sided","two-sided"),
                    stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
-                   method = c("unadjusted","ipcw","covipcw","iptw"),
+                   method = c("unadjusted","ipcw","covipcw","iptw","iptw_ipcw","iptw_covipcw"),
                    summary.print = TRUE, ...){
   #### match the argument
   pvalue = match.arg(pvalue)
@@ -133,7 +133,18 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = 
                                                 arm.name = arm.name,id_trt=id_trt,id_con=id_con,ep_type = ep_type,n_ep = n_ep,
                                                 priority = priority,tau = tau,np_direction = np_direction,win.strategy = win.strategy,
                                                 alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
-                                                summary.print = summary.print, ...)
+                                                summary.print = summary.print, ...),
+                "iptw_ipcw" = iptw_ipcw.win.stat(df = df,iptw.weight = iptw.weight,n_total = n_total,arm.name = arm.name,
+                                                 id_trt=id_trt,id_con=id_con,ep_type = ep_type,n_ep = n_ep,priority = priority,
+                                                 tau = tau,np_direction = np_direction,win.strategy = win.strategy,alpha = alpha,
+                                                 digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
+                                                 summary.print = summary.print, ...),
+                "iptw_covipcw" = iptw_covipcw.win.stat(df = df,Z_t_trt = Z_t_trt,Z_t_con = Z_t_con,iptw.weight = iptw.weight,
+                                                       n_total = n_total,arm.name = arm.name,id_trt=id_trt,id_con=id_con,
+                                                       ep_type = ep_type,n_ep = n_ep,priority = priority,tau = tau,
+                                                       np_direction = np_direction,win.strategy = win.strategy,
+                                                       alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
+                                                       summary.print = summary.print, ...)
   )
 
   return(res)
