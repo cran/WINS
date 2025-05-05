@@ -111,32 +111,17 @@ res_tte <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"),
                     pvalue = "two-sided")
 ```
 
-When censoring is assumed to be independent of the outcomes, we provide the option `method = "ipcw"` to calculate IPCW-adjusted win statistics (Dong et al., 2020). The example code is presented below.
+When censoring is assumed to be independent of the outcomes, we provide the option `method = "ipcw_tau"` to calculate IPCW-adjusted win statistics (Cui et al., 2025+). The example code is presented below.
 
 ```{r, eval=TRUE,echo=TRUE,warning=FALSE}
 ### IPCW adjustment for independent censoring
 res_tte_ipcw <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"),
                          tau = 0.1, priority = c(1:3), alpha = 0.05, digit = 3, 
-                         stratum.weight = "unstratified", method = "ipcw", 
+                         stratum.weight = "unstratified", method = "ipcw_tau", 
                          pvalue = "two-sided")
 ```
 
-When censoring is suspected to be dependent on baseline or time dependent covariates which correlate with the outcomes, we provide the option `method = "covipcw"` to calculate CovIPCW-adjusted win statistics (Dong et al., 2021). The example code is presented below.
-
-```{r, eval=TRUE,echo=TRUE,warning=FALSE}
-head(Z_t_trt)
-
-### CovIPCW adjustment for dependent censoring
-res_tte_covipcw <- win.stat(data = data_tte, ep_type = "tte", tau = 0.1, 
-                            arm.name = c("A","B"), stratum.weight = "unstratified",
-                            Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
-                            priority = c(1:3), alpha = 0.05, digit = 3,
-                            method = "covipcw", pvalue = "two-sided")
-```
-
-In the last two examples, there is $WR=WO$ because we adjusted the win proportions so that the tie proportion is not negative (i.e. equal to zero after adjustment) after IPCW adjustment. 
-
-These three examples presented above show the basic usage of the R function `win.stat` with various types of endpoints. In the next example, we provide a more complex data example.
+These examples presented above show the basic usage of the R function `win.stat` with various types of endpoints. In the next example, we provide a more complex data example.
 
 ### An example with a mixture of endpoint types: two continuous and one TTE
 
@@ -151,19 +136,6 @@ res_mix <- win.stat(data = data_mix, ep_type = c("tte","continuous","continuous"
                     arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
                     alpha = 0.05, digit = 3, method = "unadjusted",
                     stratum.weight = "unstratified", pvalue = "two-sided")
-```
-
-When there is at least one TTE endpoints among all, the option censoring_adjust to calculate IPCW-adjusted and CovIPCW-adjusted win statistic is available.
-
-The example code is presented below.
-
-```{r, eval=TRUE,echo=TRUE,warning=FALSE}
-### IPCW adjustment for independent censoring
-res_mix_ipcw <- win.stat(data = data_mix, 
-                         ep_type = c("tte","continuous","continuous"), 
-                         arm.name = c("A","B"), tau = 0.1, priority = c(1:3),
-                         alpha = 0.05, digit = 3, method = "ipcw",
-                         stratum.weight="unstratified", pvalue = "two-sided")
 ```
 
 ### An example with a mixture of endpoint types: two continuous and one TTE with three strata
@@ -339,6 +311,8 @@ priority = c(3,2,1), tau = 0, plotTimeUnit = "years", trt_group = "trt")
 - Buyse, M., 2010. Generalized pairwise comparisons of prioritized outcomes in the two‐sample problem. Statistics in medicine.
 
 - Cui, Y., Dong, G., Kuan, P.F. and Huang, B., 2022. Evidence synthesis analysis with prioritized benefit outcomes in oncology clinical trials. Journal of Biopharmaceutical Statistics.
+
+- Cui, Y., Huang, B., Dong, G., Uozumi, R., Tian, L., 2025+. An IPCW Adjusted Win Statistics Approach in Clinical Trials Incorporating Equivalence Margins to Define Ties. Statistics in Medicine. (Under revision)
 
 - Dong, G., Li, D., Ballerstedt, S. and Vandemeulebroecke, M., 2016. A generalized analytic solution to the win ratio to analyze a composite endpoint considering the clinical importance order among components. Pharmaceutical statistics.
 

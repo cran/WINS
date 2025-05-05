@@ -8,8 +8,9 @@ A plot for the win proportions of the treatment/control group over the study tim
 }
 \usage{
 partition_t.plot(data, Ctime = Inf, arm.name = c(1, 2), priority = c(1, 2),
-censoring_adjust = "No", Z_t_trt = NULL, Z_t_con = NULL, tau = 0,
-np_direction = "larger",plotTimeUnit = NULL,
+censoring_adjust = c("unadjusted","ipcw_tau","ipcw","covipcw"),
+Z_t_trt = NULL, Z_t_con = NULL, tau = 0,
+np_direction = "larger",horizon= Inf,plotTimeUnit = NULL,
 trt_group = c("both","trt","con"), win.strategy = NULL, ...)
 }
 \arguments{
@@ -40,6 +41,7 @@ trt_group = c("both","trt","con"), win.strategy = NULL, ...)
       \item{"larger": }{The treatment group wins if min(T_trt, C_trt, C_con + tau) > T_con + tau, for time-to-event outcomes; "the larger value wins" for continuous outcome, value 1 wins over the value 0 for binary outcome.}
       \item{"smaller": }{The treatment group wins if min(T_trt, C_trt, C_con - tau) < T_con - tau, for time-to-event outcomes; "the smaller value wins" for continuous outcome, value 0 wins over the value 1 for binary outcome.}
       }}
+  \item{horizon}{Time horizon of interest.}
   \item{plotTimeUnit}{The time units, e.g., "days", "months", "years", default as NULL.}
   \item{trt_group}{An argument to decide the arms for which the win proportions over time are plotted, possible choices include "both", "trt" and "con". Default is "both", i.e., by default the win proportion over time is plotted both for the treatment group and for the control group.}
   \item{win.strategy}{The strategy to determine the win status. Default as NULL. If NULL, the default win strategy funtion "win.strategy.default" is called, see \link{win.strategy.default} for more details. Users can also define their own "win.strategy" function.}

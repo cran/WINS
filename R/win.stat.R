@@ -1,9 +1,9 @@
 win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = NULL, arm.name = c(1,2),
-                   priority = c(1,2), alpha = 0.05, digit = 5, tau = 0, np_direction = "larger",
+                   priority = c(1,2), alpha = 0.05, digit = 5, tau = 0, np_direction = "larger", horizon= Inf,
                    win.strategy = NULL,
                    pvalue = c("one-sided","two-sided"),
                    stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
-                   method = c("unadjusted","ipcw","covipcw","iptw","iptw_ipcw","iptw_covipcw"),
+                   method = c("unadjusted","ipcw_tau","ipcw","covipcw","iptw","iptw_ipcw","iptw_covipcw"),
                    summary.print = TRUE, ...){
   #### match the argument
   pvalue = match.arg(pvalue)
@@ -63,7 +63,7 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = 
     np_direction = rep(np_direction,n_ep)
   }
 
-  if("smaller"%in%np_direction & method %in% c("ipcw","covipcw")){
+  if("smaller"%in%np_direction & method %in% c("ipcw","covipcw","ipcw_tau","iptw_ipcw","iptw_covipcw")){
     stop("The IPCW-adjusted approach is not applicable if smaller is specified for any endpoint in np_direction. Please try another method.")
   }
 
@@ -94,6 +94,8 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = 
     cat("This analysis is unstratified.","\n")
   }
 
+  Y = as.matrix(data[,which(stringr::str_detect(colname.ds,"Y"))])
+
   Delta = matrix(1,n_total,n_ep)
   if(max(c(stringr::str_detect(colname.ds,"Delta"),stringr::str_detect(colname.ds,"delta")))>0){
     ind_delta = which(stringr::str_detect(colname.ds,"Delta")|stringr::str_detect(colname.ds,"delta"))
@@ -102,7 +104,10 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = 
     warning("No event status information detected. The default value of 1 is assigned to all individuals.")
   }
 
-  Y = as.matrix(data[,which(stringr::str_detect(colname.ds,"Y"))])
+  Y[,which(ep_type%in%c("tte","continuous"))] = pmin(Y[,which(ep_type%in%c("tte","continuous"))], horizon)
+  Delta[,which(ep_type%in%c("tte","continuous"))] = ifelse(Y[,which(ep_type%in%c("tte","continuous"))]==horizon,
+                                                           1,
+                                                           Delta[,which(ep_type%in%c("tte","continuous"))])
 
   df = data.frame(arm = arm,stratum = stratum,Delta = Delta,Y = Y)
   colnames(df) = c("arm","stratum",paste0("Delta_",1:n_ep),paste0("Y_",1:n_ep))
@@ -119,6 +124,11 @@ win.stat<-function(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = 
                                                    win.strategy = win.strategy,
                                                    alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
                                                    summary.print = summary.print, ...),
+                "ipcw_tau" = ipcw.adjusted.tau.win.stat(df = df,n_total = n_total,arm.name = arm.name,id_trt=id_trt,id_con=id_con,
+                                                        ep_type = ep_type,n_ep = n_ep,priority = priority,tau = tau,
+                                                        np_direction = np_direction,win.strategy = win.strategy,
+                                                        alpha = alpha,digit = digit,pvalue = pvalue,stratum.weight = stratum.weight,
+                                                        summary.print = summary.print, ...),
                 "ipcw" = ipcw.win.stat(df = df,n_total = n_total,arm.name = arm.name,id_trt=id_trt,id_con=id_con,
                                        ep_type = ep_type,n_ep = n_ep,
                                        priority = priority,tau = tau,np_direction = np_direction,win.strategy = win.strategy,

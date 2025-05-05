@@ -35,18 +35,8 @@ res_tte <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"),
 ### IPCW adjustment for independent censoring
 res_tte_ipcw <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"),
                          tau = 0.1, priority = c(1:3), alpha = 0.05, digit = 3, 
-                         stratum.weight = "unstratified", method = "ipcw", 
+                         stratum.weight = "unstratified", method = "ipcw_tau", 
                          pvalue = "two-sided")
-
-## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
-head(Z_t_trt)
-
-### CovIPCW adjustment for dependent censoring
-res_tte_covipcw <- win.stat(data = data_tte, ep_type = "tte", tau = 0.1, 
-                            arm.name = c("A","B"), stratum.weight = "unstratified",
-                            Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
-                            priority = c(1:3), alpha = 0.05, digit = 3,
-                            method = "covipcw", pvalue = "two-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
 head(data_mix)
@@ -55,14 +45,6 @@ res_mix <- win.stat(data = data_mix, ep_type = c("tte","continuous","continuous"
                     arm.name = c("A","B"), tau = 0.1, priority = c(1:3), 
                     alpha = 0.05, digit = 3, method = "unadjusted",
                     stratum.weight = "unstratified", pvalue = "two-sided")
-
-## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
-### IPCW adjustment for independent censoring
-res_mix_ipcw <- win.stat(data = data_mix, 
-                         ep_type = c("tte","continuous","continuous"), 
-                         arm.name = c("A","B"), tau = 0.1, priority = c(1:3),
-                         alpha = 0.05, digit = 3, method = "ipcw",
-                         stratum.weight="unstratified", pvalue = "two-sided")
 
 ## ---- eval=TRUE,echo=TRUE,warning=FALSE---------------------------------------
 res_mix_equal <- win.stat(data = data_mix_stratum, 

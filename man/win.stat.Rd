@@ -9,9 +9,10 @@ Calculate the win statistics for a mixture type of outcomes including time-to-ev
 \usage{
 win.stat(data, ep_type, Z_t_trt = NULL, Z_t_con = NULL, iptw.weight = NULL,
 arm.name = c(1,2),priority = c(1,2), alpha = 0.05, digit = 5, tau = 0,
-np_direction = "larger", win.strategy = NULL,pvalue = c("one-sided","two-sided"),
+np_direction = "larger", horizon = Inf,
+win.strategy = NULL,pvalue = c("one-sided","two-sided"),
 stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
-method = c("unadjusted","ipcw","covipcw","iptw","iptw_ipcw","iptw_covipcw"),
+method = c("unadjusted","ipcw_tau","ipcw","covipcw","iptw","iptw_ipcw","iptw_covipcw"),
 summary.print = TRUE, ...)
 }
 \arguments{
@@ -45,6 +46,7 @@ summary.print = TRUE, ...)
       \item{"larger": }{The treatment group wins if min(T_trt, C_trt, C_con + tau) > T_con + tau, for time-to-event outcomes; "the larger value wins" for continuous outcome, value 1 wins over the value 0 for binary outcome.}
       \item{"smaller": }{The treatment group wins if min(T_trt, C_trt, C_con - tau) < T_con - tau, for time-to-event outcomes; "the smaller value wins" for continuous outcome, value 0 wins over the value 1 for binary outcome.}
       }}
+  \item{horizon}{Time horizon of interest.}
   \item{win.strategy}{The strategy to determine the win status. Default as NULL. If NULL, the default win strategy funtion "win.strategy.default" is called, see \link{win.strategy.default} for more details. Users can also define their own "win.strategy" function.}
   \item{pvalue}{The p-value type: "one-sided" or "two-sided".}
   \item{stratum.weight}{The weighting method for each stratum. Default is "unstratified" for unstratified analysis. A stratified analysis is performed if other weight option is specified. Other possible choices for this argument are listed below.
@@ -58,6 +60,7 @@ summary.print = TRUE, ...)
   \item{method}{The method to adjust the kernal functions. Possible choices are listed below.
     \describe{
       \item{"unadjusted": }{Without using the IPCW approach to dealing with the censoring.}
+      \item{"ipcw_tau": }{IPCW adjustment for censoring incorporating equivalence margin to define ties.}
       \item{"ipcw": }{IPCW adjustment for censoring with the Kaplan-Meier estimator.}
       \item{"covipcw": }{IPCW adjustment for censoring with the time dependent Cox model.}
       \item{"iptw": }{Inverse probability of treatment weighting (IPTW) method.}
@@ -113,6 +116,7 @@ The arguments of user defined "win.strategy" function must at least include the 
     \item Bebu, I. and Lachin, J.M., 2016. Large sample inference for a win ratio analysis of a composite outcome based on prioritized components. Biostatistics.
     \item Buyse, M., 2010. Generalized pairwise comparisons of prioritized outcomes in the two-sample problem. Statistics in medicine.
     \item Cui, Y., Dong, G., Kuan, P.F. and Huang, B., 2022. Evidence synthesis analysis with prioritized benefit outcomes in oncology clinical trials. Journal of Biopharmaceutical Statistics.
+    \item Cui, Y., Huang, B., Dong, G., Uozumi, R., Tian, L., 2025+. An IPCW Adjusted Win Statistics Approach in Clinical Trials Incorporating Equivalence Margins to Define Ties. Statistics in Medicine. (Under revision)
     \item Dong, G., Li, D., Ballerstedt, S. and Vandemeulebroecke, M., 2016. A generalized analytic solution to the win ratio to analyze a composite endpoint considering the clinical importance order among components. Pharmaceutical statistics.
     \item Dong, G., Qiu, J., Wang, D. and Vandemeulebroecke, M., 2018. The stratified win ratio. Journal of biopharmaceutical statistics.
     \item Dong, G., Huang, B., Chang, Y.W., Seifu, Y., Song, J. and Hoaglin, D.C., 2020. The win ratio: Impact of censoring and follow-up time and use with nonproportional hazards. Pharmaceutical statistics.
@@ -136,12 +140,11 @@ The arguments of user defined "win.strategy" function must at least include the 
 \donttest{
 #### An example with time-to-event outcome.
 head(data_tte)
-head(Z_t_trt)
 
-### CovIPCW adjustment for dependent censoring
-res_tte_covipcw <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"), tau = 0.1,
+### IPCW adjustment for dependent censoring
+res_tte_ipcw <- win.stat(data = data_tte, ep_type = "tte", arm.name = c("A","B"), tau = 0.1,
 Z_t_trt = Z_t_trt, Z_t_con = Z_t_con, priority = c(1:3), alpha = 0.05, digit = 3,
-method = "covipcw", stratum.weight = "unstratified", pvalue = "two-sided")
+method = "ipcw_tau", stratum.weight = "unstratified", pvalue = "two-sided")
 
 #### An example with continuous outcome.
 head(data_continuous)

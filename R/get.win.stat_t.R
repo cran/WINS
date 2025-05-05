@@ -2,7 +2,7 @@ get.win.stat_t<-function(trt, con, ep_type, Z_t_trt = NULL, Z_t_con = NULL, prio
                          Ctimej = Inf, Start_time_trt = NULL, Start_time_con = NULL, alpha = 0.05,
                          tau = 0, np_direction = "larger",
                          stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
-                         censoring_adjust = c("No","IPCW","CovIPCW"),
+                         censoring_adjust = c("unadjusted","ipcw_tau","ipcw","covipcw"),
                          pvalue = c("one-sided","two-sided"),
                          win.strategy = NULL, status_only = FALSE, return_CI = FALSE,
                          return_pvalue = FALSE, ...){
@@ -49,10 +49,12 @@ get.win.stat_t<-function(trt, con, ep_type, Z_t_trt = NULL, Z_t_con = NULL, prio
 
   #### Obtain kernel function K and L
   res_KL = switch (censoring_adjust,
-               "No" = original.KL(win_status = win_status, trt_con = trt_con, n_ep = n_ep),
-               "IPCW" = ipcw.adjusted.KL(win_status = win_status, trt = trt, con = con, trt_con = trt_con,
+               "unadjusted" = original.KL(win_status = win_status, trt_con = trt_con, n_ep = n_ep),
+               "ipcw_tau" = ipcw.adjusted.tau.KL(win_status = win_status, trt = trt, con = con, trt_con = trt_con,
+                                         priority = priority, n_ep = n_ep,ep_type = ep_type,tau=tau),
+               "ipcw" = ipcw.adjusted.KL(win_status = win_status, trt = trt, con = con, trt_con = trt_con,
                                          priority = priority, n_ep = n_ep, ep_type = ep_type),
-               "CovIPCW" = covipcw.adjusted.KL(win_status = win_status, trt = trt,con = con,trt_con = trt_con,
+               "covipcw" = covipcw.adjusted.KL(win_status = win_status, trt = trt,con = con,trt_con = trt_con,
                                                Z_t_trt = Z_t_trt, Z_t_con = Z_t_con,
                                                priority = priority, n_ep = n_ep, ep_type = ep_type)
   )

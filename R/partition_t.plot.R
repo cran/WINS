@@ -1,9 +1,11 @@
-partition_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2), censoring_adjust = "No",
-                           Z_t_trt = NULL, Z_t_con = NULL,tau = 0, np_direction = "larger",
+partition_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
+                           censoring_adjust = c("unadjusted","ipcw_tau","ipcw","covipcw"),
+                           Z_t_trt = NULL, Z_t_con = NULL,tau = 0, np_direction = "larger",horizon= Inf,
                            plotTimeUnit = NULL, trt_group = c("both","trt","con"),
                            win.strategy = NULL, ...){
   #### match the argument
   trt_group = match.arg(trt_group)
+  censoring_adjust = match.arg(censoring_adjust)
 
   #### Remove missing values
   colname.ds = colnames(data)
@@ -73,6 +75,8 @@ partition_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,
     warning("The study entry time is missing, by default zero will be assigned to all subjects.")
   }
 
+  Y = as.matrix(data[,which(stringr::str_detect(colname.ds,"Y"))])
+
   Delta = matrix(1,n_total,n_ep)
   if(max(c(stringr::str_detect(colname.ds,"Delta"),stringr::str_detect(colname.ds,"delta")))>0){
     ind_delta = which(stringr::str_detect(colname.ds,"Delta")|stringr::str_detect(colname.ds,"delta"))
@@ -81,7 +85,10 @@ partition_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,
     warning("No event status information detected. The default value of 1 is assigned to all individuals.")
   }
 
-  Y = as.matrix(data[,which(stringr::str_detect(colname.ds,"Y"))])
+  Y[,which(ep_type%in%c("tte","continuous"))] = pmin(Y[,which(ep_type%in%c("tte","continuous"))], horizon)
+  Delta[,which(ep_type%in%c("tte","continuous"))] = ifelse(Y[,which(ep_type%in%c("tte","continuous"))]==horizon,
+                                                           1,
+                                                           Delta[,which(ep_type%in%c("tte","continuous"))])
 
   #### obtain the maximum study time
   study_time = sweep(Y[,which(ep_type=="tte")], 1, Start_time, "+")

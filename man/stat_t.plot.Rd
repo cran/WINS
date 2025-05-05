@@ -9,9 +9,9 @@ Plot the win statistics as a function of the study time for time-to-event endpoi
 \usage{
 stat_t.plot(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
 statistic = c("WR","NB","WO"),
-Z_t_trt = NULL, Z_t_con = NULL, tau = 0,np_direction = "larger",
+Z_t_trt = NULL, Z_t_con = NULL, tau = 0,np_direction = "larger",horizon= Inf,
 stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
-censoring_adjust = c("No","IPCW","CovIPCW"),
+censoring_adjust = c("unadjusted","ipcw_tau","ipcw","covipcw"),
 win.strategy = NULL, plotTimeUnit = NULL,
 plot_CI = FALSE, alpha = 0.05, ...)
 }
@@ -44,6 +44,7 @@ plot_CI = FALSE, alpha = 0.05, ...)
       \item{"larger": }{The treatment group wins if min(T_trt, C_trt, C_con + tau) > T_con + tau, for time-to-event outcomes; "the larger value wins" for continuous outcome, value 1 wins over the value 0 for binary outcome.}
       \item{"smaller": }{The treatment group wins if min(T_trt, C_trt, C_con - tau) < T_con - tau, for time-to-event outcomes; "the smaller value wins" for continuous outcome, value 0 wins over the value 1 for binary outcome.}
       }}
+  \item{horizon}{Time horizon of interest.}
   \item{stratum.weight}{The weighting method for each stratum. Default is "unstratified" for unstratified analysis. A stratified analysis is performed if other weight option is specified. Other possible choices for this argument are listed below.
     \describe{
       \item{"MH-type": }{weight the wins with the reciprocal of the stratum size following the Mantel-Haenszel type stratified analysis as described in Dong et al. (2018).}
@@ -81,7 +82,7 @@ max_accrual_time = 5)
 
 stat_t.plot(data, arm.name = c("A","B"),priority = c(1,2),
 Ctime = seq(2,12,1),plotTimeUnit = "years",statistic = "WR", tau = 0,
-stratum.weight = "unstratified", censoring_adjust = "No", plot_CI = TRUE)
+stratum.weight = "unstratified", plot_CI = TRUE)
 
 #### An simulated example with three TTE endpoints.
 data <- sim.data(n_trt = 200, n_con = 200, n_ep = 3, arm.name = c("A","B"),

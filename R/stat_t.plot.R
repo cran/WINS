@@ -1,8 +1,8 @@
 stat_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
                       statistic = c("WR","NB","WO"), Z_t_trt = NULL, Z_t_con = NULL,tau = 0,
-                      np_direction = "larger",
+                      np_direction = "larger",horizon= Inf,
                       stratum.weight = c("unstratified","MH-type","wt.stratum1","wt.stratum2","equal"),
-                      censoring_adjust = c("No","IPCW","CovIPCW"),
+                      censoring_adjust = c("unadjusted","ipcw_tau","ipcw","covipcw"),
                       win.strategy = NULL, plotTimeUnit = NULL, plot_CI = FALSE, alpha = 0.05,...){
   #### match the argument
   statistic = match.arg(statistic)
@@ -79,6 +79,8 @@ stat_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
     warning("The study entry time is missing, by default zero will be assigned to all subjects.")
   }
 
+  Y = as.matrix(data[,which(stringr::str_detect(colname.ds,"Y"))])
+
   Delta = matrix(1,n_total,n_ep)
   if(max(c(stringr::str_detect(colname.ds,"Delta"),stringr::str_detect(colname.ds,"delta")))>0){
     ind_delta = which(stringr::str_detect(colname.ds,"Delta")|stringr::str_detect(colname.ds,"delta"))
@@ -87,7 +89,10 @@ stat_t.plot<-function(data, Ctime = Inf, arm.name = c(1,2), priority = c(1,2),
     warning("No event status information detected. The default value of 1 is assigned to all individuals.")
   }
 
-  Y = as.matrix(data[,which(stringr::str_detect(colname.ds,"Y"))])
+  Y[,which(ep_type%in%c("tte","continuous"))] = pmin(Y[,which(ep_type%in%c("tte","continuous"))], horizon)
+  Delta[,which(ep_type%in%c("tte","continuous"))] = ifelse(Y[,which(ep_type%in%c("tte","continuous"))]==horizon,
+                                                           1,
+                                                           Delta[,which(ep_type%in%c("tte","continuous"))])
 
   #### obtain the maximum study time
   study_time = sweep(Y[,which(ep_type=="tte")], 1, Start_time, "+")
