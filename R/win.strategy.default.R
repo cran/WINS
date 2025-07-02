@@ -41,9 +41,9 @@ win.strategy.default<-function(trt_con, priority, tau, np_direction){
                      (delta_l_trt == 1 & delta_l_con < 1 & Y_l_con > (Y_l_trt + tau_l)))
     }else if(direction_l == "smaller"){
       win.temp1 = ((delta_l_trt == 1 & delta_l_con == 1 & Y_l_trt < (Y_l_con - tau_l)) |
-                     (delta_l_trt < 1 & delta_l_con == 1 & Y_l_trt < (Y_l_con - tau_l)))
+                     (delta_l_trt == 1 & delta_l_con < 1 & Y_l_trt < (Y_l_con - tau_l)))
       win.temp2 = ((delta_l_trt == 1 & delta_l_con == 1 & Y_l_con < (Y_l_trt - tau_l)) |
-                     (delta_l_trt == 1 & delta_l_con < 1 & Y_l_con < (Y_l_trt - tau_l)))
+                     (delta_l_trt < 1 & delta_l_con == 1 & Y_l_con < (Y_l_trt - tau_l)))
     }
 
     win.status0 = cbind(win.status0, win.temp1, win.temp2)
